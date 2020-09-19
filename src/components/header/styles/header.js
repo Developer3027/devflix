@@ -40,7 +40,7 @@ export const Logo = styled.img`
 
 export const ButtonLink = styled(ReactRouterLink)`
   display: block;
-  background-color: #e50914;
+  background-color: #00aa00;
   width: 84px;
   height: fit-content;
   color: white;
@@ -53,6 +53,6 @@ export const ButtonLink = styled(ReactRouterLink)`
   box-sizing: border-box;
 
   &:hover {
-    background-color: #f40612;
+    background-color: #00d400;
   }
 `

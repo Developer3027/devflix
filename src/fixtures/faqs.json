@@ -1,27 +1,32 @@
 [
 	{
 		"id": 1,
-		"header": "What is Netflix?",
-		"body": "Netflix is a streaming service that offers a wide variety of award-winning TV programmes, films, anime, documentaries and more – on thousands of internet-connected devices.\n\nYou can watch as much as you want, whenever you want, without a single advert – all for one low monthly price. There's always something new to discover, and new TV programmes and films are added every week!"
+		"header": "What is Devflix?",
+		"body": "Devflix is a web development knowledge system that organizes YouTube content and providers for easier access per subject, presented in a comfortable and recognizable style. There is always something new to discover as new content is added weekly. Each provider is chosen for there clarity and content. Easily locate content providers, easily access their resources, make notes or test your knowledge."
 	},
 	{
 		"id": 2,
-		"header": "How much does Netflix cost?",
-		"body": "Watch Netflix on your smartphone, tablet, smart TV, laptop or streaming device, all for one low fixed monthly fee. Plans start from £5.99 a month. No extra costs or contracts."
+		"header": "How much does Devflix cost?",
+		"body": "Watch Devflix on your smartphone, tablet, laptop or streaming device, all for one low fixed monthly fee. Only $5.99 a month. No extra costs or contracts."
 	},
 	{
 		"id": 3,
 		"header": "Where can I watch?",
-		"body": "Watch anywhere, anytime, on an unlimited number of devices. Sign in with your Netflix account to watch instantly on the web at netflix.com from your personal computer or on any internet-connected device that offers the Netflix app, including smart TVs, smartphones, tablets, streaming media players and game consoles.\n\nYou can also download your favorite programmes with the iOS, Android, or Windows 10 app. Use downloads to watch while you're on the go and without an internet connection. Take Netflix with you anywhere."
+		"body": "Watch anywhere, anytime, on an unlimited number of devices. Sign in with your Devflix account to watch instantly on the web at Devflix.com from your personal computer or on any internet-connected device that offers a web browser, including smartphones, tablets, streaming media players and game consoles."
 	},
 	{
 		"id": 4,
 		"header": "How do I cancel?",
-		"body": "Netflix is flexible. There are no annoying contracts and no commitments. You can easily cancel your account online in two clicks. There are no cancellation fees – start or stop your account at any time."
+		"body": "Devflix is flexible. There are no annoying contracts and no commitments. You can easily cancel your account online in two clicks. There are no cancellation fees – start or stop your account at any time."
 	},
 	{
 		"id": 5,
-		"header": "What can I watch on Netflix?",
-		"body": "Netflix has an extensive library of feature films, documentaries, TV programmes, anime, award-winning Netflix originals, and more. Watch as much as you want, any time you want."
+		"header": "What can I watch on Devflix?",
+		"body": "Devflix is constantly growing. Watch great providers such as Traversy Media, Dev Ed, Rino from Living with Pixels, Net Ninja, Design Course, Coding Garden, Code Foundry, The Futur, Kevin Powell and so many more. You can request any content provider to be added to the network and more are added all the time."
+	},
+	{
+		"id": 6,
+		"header": "Why do Devflix when YouTube is free?",
+		"body": "Devflix is so much more than free YouTube video's. These Content providers put a lot of time and effort into providing quality content. The Devflix layout is simple and focuses on the content, not the next random video. You can easily locate and use the resources the provider intended you to have. Take notes about key features to assist in your learning journey. Take test's geared to help strengthen your knowledge of the content. All for one low monthly fee."
 	}
 ]

@@ -10,8 +10,10 @@ export default function Home () {
     <>
       <HeaderContainer>
         <Feature>
-          <Feature.Title>Unlimited films, Tv programs, and more.</Feature.Title>
-          <Feature.SubTitle>Watch anywhere. Cancel anytime.</Feature.SubTitle>
+          <Feature.Title>All Web Development, all the time.</Feature.Title>
+          <Feature.SubTitle>
+            Watch anywhere. Focus on your skills.
+          </Feature.SubTitle>
 
           <OptForm>
             <OptForm.Input placeholder='Email address' />

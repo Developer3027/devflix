@@ -30,7 +30,7 @@ export default function Signin () {
       })
   }
 
-  const isInvalid = password == '' || emailAddress == ''
+  const isInvalid = password === '' || emailAddress === ''
 
   // check if inputs are valid
 
@@ -40,7 +40,7 @@ export default function Signin () {
         <Form>
           <Form.Title>Sign In</Form.Title>
           {isInvalid && (
-            <Form.Information>Complete the Form to submit</Form.Information>
+            <Form.Information>Complete the Form to Sign in</Form.Information>
           )}
           {error && <Form.Error>{error}</Form.Error>}
 

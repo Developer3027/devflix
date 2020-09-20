@@ -1,3 +1,24 @@
+# Devflix
+
+### Welcome to the Devflix repo.
+
+This project is to provide the service of organizing YouTube videos to focus on web development and cut out the noise, allowing web devs to focus on learning new skills, sharpening their current skill stack, and readily get to the resources the providers want you to have.
+
+YouTube is a valuable resource and content providers pour their heart and soles into teaching us important skill sets to improve ourselves, but it is often difficult to stay focused with all the clutter that YouTube provides as part of it's service. And the resources provided by the creator are available but often difficult to get to.
+
+Devflix mimics Netflix and provides categories to browse through to easily find the content or provider your looking for on a particular subject. The providers resources are easily located to the right of the video, where you can also take your own notes.
+
+# Information
+
+- Base off the Karl Hadwen YouTube tutorial.
+- This is a live project and evolving.
+- This project is using yarn, not npm.
+- This project was made with yarn create react-app.
+- This is a React project.
+- This project has a Trello Board.
+- Please talk with the developer before pushing.
+- Feel free to fork.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -66,4 +87,5 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `yarn build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+
 # devflix

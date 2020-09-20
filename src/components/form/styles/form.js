@@ -51,7 +51,7 @@ export const Information = styled.p`
   @keyframes pulse {
     0%,
     100% {
-      background: rgba(255, 255, 0, 0.05);
+      color: #ffff00;
     }
     50% {
       background: rgba(0, 170, 0, 0.5);

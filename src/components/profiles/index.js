@@ -8,12 +8,15 @@ export default function Profiles ({ children, ...restProps }) {
 Profiles.Title = function ProfileTitle ({ children, ...restProps }) {
   return <Title {...restProps}>{children}</Title>
 }
+
 Profiles.List = function ProfileList ({ children, ...restProps }) {
   return <List {...restProps}>{children}</List>
 }
+
 Profiles.User = function ProfileUser ({ children, ...restProps }) {
   return <Item {...restProps}>{children}</Item>
 }
+
 Profiles.Picture = function ProfilePicture ({ src, ...restProps }) {
   return (
     <Picture
@@ -22,6 +25,7 @@ Profiles.Picture = function ProfilePicture ({ src, ...restProps }) {
     />
   )
 }
+
 Profiles.Name = function ProfileName ({ children, ...restProps }) {
   return <Name {...restProps}>{children}</Name>
 }

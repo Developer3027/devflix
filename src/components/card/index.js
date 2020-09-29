@@ -105,6 +105,7 @@ Card.Feature = function CardFeature ({ children, category, ...restProps }) {
         </Group>
 
         {children}
+        <a href={itemFeature.video}>Play</a>
       </Content>
     </Feature>
   ) : null

@@ -4,7 +4,7 @@ import { SelectProfileContainer } from './profiles'
 import { FirebaseContext } from '../context/firebase'
 import { Card, Header, Loading, Player } from '../components'
 import * as ROUTES from '../constants/routes'
-import logo from '../logo.svg'
+import logo from '../logo.png'
 import { FooterContainer } from '../containers/footer'
 
 export function BrowseContainer ({ slides }) {
@@ -43,7 +43,7 @@ export function BrowseContainer ({ slides }) {
   return profile.displayName ? (
     <>
       {loading ? <Loading src={user.photoURL} /> : <Loading.ReleaseBody />}
-      <Header src='joker1' dontShowOnSmallViewPort>
+      <Header src='main' dontShowOnSmallViewPort>
         <Header.Frame>
           <Header.Group>
             <Header.Logo to={ROUTES.HOME} src={logo} alt='Net flicks' />
@@ -83,13 +83,12 @@ export function BrowseContainer ({ slides }) {
         </Header.Frame>
 
         <Header.Feature>
-          <Header.Text>Watch Joker Now</Header.Text>
+          <Header.Text>Web Development Now</Header.Text>
           <Header.TextSmall>
-            Forever alone in a crowd, failed comedian Arthur Fleck seeks
-            connection as he walks the streets of Gotham City. Arthur wears two
-            masks -- the one he paints for his day job as a clown, and the guise
-            he projects in a futile attempt to feel like he's part of the world
-            around him.
+            Web dev skills are difficult to acquire and maintain. YouTube is an
+            immersive platform to gain and polish your skills. Here we have
+            plucked some of our favorites for your review. Learn, laugh, and
+            continue to learn new things on your journey of web development.
           </Header.TextSmall>
           <Header.PlayButton>Play</Header.PlayButton>
         </Header.Feature>
@@ -100,6 +99,7 @@ export function BrowseContainer ({ slides }) {
           <Card key={`${category}-${slideItem.title.toLowerCase()}`}>
             <Card.Title>{slideItem.title}</Card.Title>
             <Card.Entities>
+              {' '}
               {slideItem.data.map(item => (
                 <Card.Item key={item.docId} item={item}>
                   <Card.Image
@@ -113,9 +113,10 @@ export function BrowseContainer ({ slides }) {
               ))}
             </Card.Entities>
             <Card.Feature category={category}>
+              {console.log('video: ', slideRows)}
               <Player>
                 <Player.Button />
-                <Player.Video src='/videos/bunny.mp4' />
+                <Player.Video src={slideRows.video} />
               </Player>
             </Card.Feature>
           </Card>

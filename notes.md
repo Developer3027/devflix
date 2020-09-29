@@ -93,3 +93,7 @@ https://www.googleapis.com/youtube/v3/list?channelId=UU29ju8bIPH5as8OGnQzwJyA&pa
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLillGF-RfqbZTASqIqdvm1R5mLrQq79CU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; e"ncrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 /"
+
+https://www.googleapis.com/youtube/v3/channels?part=snippet%2C contentDetails%2C statistics&forUsername=TechGuyWeb&key=AIzaSyDDpCvJ5fhNFcGy-exLOOfC2DULQWtnJFc
+
+https://www.youtube.com/watch?v=UB1O30fR-EE&list=PLillGF-RfqbZTASqIqdvm1R5mLrQq79CU

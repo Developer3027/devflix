@@ -4,13 +4,14 @@
 
 This project is to provide the service of organizing YouTube videos to focus on web development and cut out the noise, allowing web devs to focus on learning new skills, sharpening their current skill stack, and readily get to the resources the providers want you to have.
 
+<hr>
+<img src="./public/images/20200930_161310.png" width=600>
+<hr>
 YouTube is a valuable resource and content providers pour their heart and soles into teaching us important skill sets to improve ourselves, but it is often difficult to stay focused with all the clutter that YouTube provides as part of it's service. And the resources provided by the creator are available but often difficult to get to.
 
 Devflix mimics Netflix and provides categories to browse through to easily find the content or provider your looking for on a particular subject. The providers resources are easily located to the right of the video, where you can also take your own notes.
 
 # Information
-
-https://avatars3.githubusercontent.com/u/44660994?s=460&v=4
 
 - Base off the Karl Hadwen YouTube tutorial.
 - This is a live project and evolving.

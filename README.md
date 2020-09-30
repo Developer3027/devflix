@@ -21,15 +21,18 @@ https://avatars3.githubusercontent.com/u/44660994?s=460&v=4
 - Please talk with the developer before pushing.
 - Feel free to fork.
 
+## Contributors
+
+| Photo                                                                                                                        |                                           Github                                           |                                                              LinkedIn                                                               | Portfolio                                  |
+| ---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------ |
+| <img src="https://avatars3.githubusercontent.com/u/44660994?s=460&v=4" width=75>                                             | [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/Developer3027) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/mason-roberts-3027/) | [Mason Roberts](https://mason-roberts.com) |
+| <img src="https://avatars2.githubusercontent.com/u/3060702?s=460&u=3e1b1c398a919074adaabb0c9559fde69ba64577&v=4" width="75"> |   [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/apena415)    | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://https://www.linkedin.com/in/apolospage/) | [Apolo Pena](https://apolopena.com)        |
+
+<br><hr>
 This project was bootstrapped with [Create React App]
-| Photo | Github | LinkedIn | Portfolio |
-| ----- | ----- | ----- | ----- |
-|<img src="https://avatars3.githubusercontent.com/u/44660994?s=460&v=4" width=75>|[<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/Developer3027)|[ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/mason-roberts-3027/)|[Mason Roberts](https://mason-roberts.com)|
-|<img src="https://avatars2.githubusercontent.com/u/3060702?s=460&u=3e1b1c398a919074adaabb0c9559fde69ba64577&v=4" width="75">|[<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/apena415)|[ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://https://www.linkedin.com/in/apolospage/) |[Apolo Pena](https://apolopena.com)
 
 ## Available Scripts
 
-| [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/Developer3027)
 In the project directory, you can run:
 
 ### `yarn start`

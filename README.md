@@ -4,6 +4,9 @@
 
 This project is to provide the service of organizing YouTube videos to focus on web development and cut out the noise, allowing web devs to focus on learning new skills, sharpening their current skill stack, and readily get to the resources the providers want you to have.
 
+<hr>
+<img src="./public/images/20200930_161310.png" width=600>
+<hr>
 YouTube is a valuable resource and content providers pour their heart and soles into teaching us important skill sets to improve ourselves, but it is often difficult to stay focused with all the clutter that YouTube provides as part of it's service. And the resources provided by the creator are available but often difficult to get to.
 
 Devflix mimics Netflix and provides categories to browse through to easily find the content or provider your looking for on a particular subject. The providers resources are easily located to the right of the video, where you can also take your own notes.
@@ -15,11 +18,19 @@ Devflix mimics Netflix and provides categories to browse through to easily find 
 - This project is using yarn, not npm.
 - This project was made with yarn create react-app.
 - This is a React project.
-- This project has a Trello Board.
+- This project has a [Trello](https://trello.com/b/mTgQs8xa) Board.
 - Please talk with the developer before pushing.
 - Feel free to fork.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Contributors
+
+| Photo                                                                                                                        |                                           Github                                           |                                                              LinkedIn                                                               | Portfolio                                  |
+| ---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------ |
+| <img src="https://avatars3.githubusercontent.com/u/44660994?s=460&v=4" width=75>                                             | [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/Developer3027) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/mason-roberts-3027/) | [Mason Roberts](https://mason-roberts.com) |
+| <img src="https://avatars2.githubusercontent.com/u/3060702?s=460&u=3e1b1c398a919074adaabb0c9559fde69ba64577&v=4" width="75"> |   [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/apena415)    | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://https://www.linkedin.com/in/apolospage/) | [Apolo Pena](https://apolopena.com)        |
+
+<br><hr>
+This project was bootstrapped with [Create React App]
 
 ## Available Scripts
 

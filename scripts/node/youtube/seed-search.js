@@ -12,6 +12,7 @@ const axios = require('axios').default;
 const path = require('path')
 const envPath = path.resolve(__dirname, '../../local.env')
 const envResult = require('dotenv').config({path: envPath, encoding: 'latin1'})
+const dumpPath = path.resolve(__dirname, 'data/dump/')
 
 // BEGIN: Share files in the node scripts root such as local utils 
 require.main.paths.push(path.resolve(__dirname, '../'))
@@ -83,7 +84,9 @@ const getVideoListById = (id, config) => {
 
 let terms = [];
 terms.push('complete react tutorial 2020');
-/*getSearchByTerms(terms[0], {isDryRun: true})
+/*
+// works
+getSearchByTerms(terms[0], {isDryRun: true})
   .then( res => {
     console.log(`Async search result complete: ${res.hasOwnProperty('data')
       ? JSON.stringify(res.data, null, 2) 
@@ -96,16 +99,21 @@ terms.push('complete react tutorial 2020');
   })
 
 let videoIds = [];
-videoIds.push('lh7pcHeGnsU');*/
-let p = fsUtil.writeFile('test.txt', 'this is only a test', {appendFile: true, flag: 'wx'})
-p.then(success => console.log(success))
+videoIds.push('lh7pcHeGnsU');
+*/
+
 /*
+// works
+fsUtil.writeFile(path.join(dumpPath, 'test.txt'), 'this is only a test', {appendFile: true})
+  .then(success => console.log(success))
+  .catch(e => console.log(e))
+*/
+
+/*
+// works
 getVideoListById(videoIds[0])
-  .then( res => console.log(`async video list complete, default language code: ${JSON.stringify(res.data)}`) )
+  .then( res => console.log(`async video list complete, default language code: ${res.data.items[0].snippet.defaultAudioLanguage}`) )
   .catch( err => warn(`async video list result FAILED for videoId: ${videoIds[0]}, Message: ${err.message}\n${err}`) )
 */
-//.then( res => console.log(`async video list complete, default language code: ${res.data.items[0].snippet.defaultAudioLanguage}`) )
 
-
-//console.log(`YOUTUBE_API_KEY=${process.env.YOUTUBE_API_KEY}`);
  

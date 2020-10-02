@@ -1,5 +1,5 @@
 dump/
 node_modules/
-local.env*
+*local.env*
 *.code-workspace*
 jsconfig.json

@@ -1,4 +1,4 @@
-const fs = require('fs').promises
+const fs = require('fs')
 
 // BEGIN: standard helper methods
 const throwFatal = (msg) => { throw new Error(msg) }

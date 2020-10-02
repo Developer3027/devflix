@@ -42,7 +42,11 @@ envResult.error && (
     : util.throwFatal(envResult.error)
 )
 
-fsUtil.createDirIfNeeded(dumpPath, 0o744, err => err && util.throwFatal(err))
+try {
+  fsUtil.createDirIfNeeded(dumpPath, 0o744, err => err && util.throwFatal(err))
+} catch (err) { 
+  console.log(`Could not create dump folder: ${err}`)
+}
 
 const KEY = process.env.YOUTUBE_API_KEY;
 const BASE_URL = process.env.YOUTUBE_API_BASE_URL;
@@ -81,7 +85,7 @@ const getSearchByTerm = (term = 'cats', config) => {
   --> Search terms have been decoded and will be encoded automatically when required.\nOffending terms were: `
   const isDryRun = (config && config.hasOwnProperty('isDryRun')) ? config.isDryRun : false
   const defaultConfig = { 
-    q: terms, 
+    q: term, 
     key: KEY,
     type: 'video',
     order: 'rating',
@@ -123,55 +127,86 @@ const getVideoListById = (id, config) => {
   return axios.get(BASE_URL + 'videos', { params })
 }
 
-let terms = [];
-terms.push('complete react tutorial 2020 -native');
-
-const dumpSearchesToFiles = async (terms, config) => {
-  /* 
-    Temporary, only write a portion of the terms, saves the API quota while testing.
-    Comment the below line of code out when you want query all the data from youtube. 
-    There will an API call for each search term and that could be ALOT!
-    100 search requests to the API will drain the entire 10000 point quota for the day.
-  */
-  terms = terms.slice(0, 2) 
-
-  const dirPath = path.join(dumpPath, util.dateStampFolder('search'))
- 
-  config && !config.isDryRun && fsUtil.createDirIfNeeded(dirPath, 0o744, err => err && util.throwFatal(err))
-
-  for (let i = 0; i < terms.length; i++) {
-    let result;
-    let fileName = util.timeStampFile(`search-list${i + 1}`, '.json')
-    try {
-      result = await getSearchByTerm(terms[i], config)
-      result.data && (result.data.searchTerm = terms[i])
+/**
+ * Makes a series of youtube API search list requests and dumps them to timestamped files in a datestamped folder. Requires a folder named 'data' to be in the root.
+ *
+ * @param {string} terms - An array of keywords string to use for the searches. Keyword strings supports boolean | (OR) and boolean - (NOT). Do not escape/URI encode keyword strings.
+ * @param {object} config - Optional Axios configuration object for the requests. Special name value pair <code>isDryRun: false</code> will omit the http request (for testing).
+ *
+ * @example
+ * // With async/await and error handling using the default axios config
+ * try {
+ *    let result = await getSearchByTerm('neat stuff')
+      result.data && console.log(`received data: ${result.data})
       console.log('Success: youtube API search request')
+ * } catch (e) console.log(e)
+ *
+ *  // With promises (and accounting for a dry run)
+ *  getSearchByTerm('neat stuff')
+ *   .then( res => { 
+ *     console.log(`search result complete: 
+ *       ${res.hasOwnProperty('data')
+         ? JSON.stringify(res.data, null, 2) 
+         : JSON.stringify(res, null, 2)}`)
+      })
+      .catch( err => {
+        console.log(err)
+      })
+ */
+const dumpSearchesToFiles = async (terms, config) => {
+  const FUNC_NAME = 'dumpSearchesToFiles():'
+  const SUCCESS_MSG = `${FUNC_NAME} Process completed. Check the log for any possible errors. file writing error are non fatal`
+  const FAILURE_MSG = `${FUNC_NAME} ABORTED, there was a failure --> `
 
-      result.data && await fsUtil.writeFile(path.join(dirPath, fileName), JSON.stringify(result.data, null, 2))
-        .then(success => console.log(success))
-        .catch(e => console.log(e))
-    } catch (err) {
-      console.log(err)
-    }
+  let dirPath;
+  try {
+    dirPath = path.join(dumpPath, util.dateStampFolder('search'))
+    fsUtil.createDirIfNeeded(dirPath, 0o744, err => { if (err) console.log('  --> ERROR, Could not create date stamped folder: ' + err)})
+  } catch (err) {
+    console.log(err)
+    return Promise.reject(err)
   }
+
+  try {
+    console.log(`dumpSearchesToFiles(): Starting a series of async search list requests and writing them to files...`)
+    /* 
+      FOR TESTING, only write a portion of the terms, saves the API quota while testing.
+      Comment the below line of code out when you want query all the data from youtube. 
+      There will an API call for each search term and that could be ALOT!
+      100 search requests to the API will drain the entire 10000 point quota for the day.
+    */
+    terms = terms.slice(0, 1) 
+  
+    for (let i = 0; i < terms.length; i++) {
+      let result;
+      let fileName = util.timeStampFile(`search-list${i + 1}`, '.json')
+      try {
+        result = await getSearchByTerm(terms[i], config)
+        result.data && (result.data.searchTerm = terms[i])
+        console.log('getSearchByTerms() --> Success: youtube API search request') // TODO: do this better
+        const uri = path.join(dirPath, fileName)
+        await fsUtil.writeFile(uri, JSON.stringify(result.data ? result.data : result, null, 2))
+          .then(success => { // writeFile errors are caught here
+            console.log(success)
+          })
+          .catch(e => console.log(` ERROR --> writing file ${uri}: ${e}`))
+      } catch (err) {
+        console.log(err) // preserves the stack trace
+        return Promise.reject(`${FAILURE_MSG}${err}`)
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    return Promise.reject(`${FAILURE_MSG}${err}`)
+  }
+  return Promise.resolve(SUCCESS_MSG)
 }
+
 const testDry = { isDryRun: true }
 dumpSearchesToFiles(SEED.frontendSearchTerms, testDry)
+  .then((res) => console.log(res))
+  .catch(e=>console.log(e))
 
-/*
-// works
-getSearchByTerm(terms[0], {isDryRun: true})
-  .then( res => {
-    console.log(`Async search result complete: ${res.hasOwnProperty('data')
-      ? JSON.stringify(res.data, null, 2) 
-      : JSON.stringify(res, null, 2)}`)
-    console.log(`${decor.HR}\n`)
-  })
-  .catch( err => {
-    util.warn(`async search result FAILED using terms: ${terms}, Message: ${err.message}`)
-    console.log(`${decor.HR}\n`)
-  })
-*/
 let videoIds = [];
 videoIds.push('lh7pcHeGnsU');
 

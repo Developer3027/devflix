@@ -3,6 +3,8 @@
 Total URL
 https://www.googleapis.com/youtube/v3/channels?part=snippet%2C contentDetails%2C statistics&forUsername=TechGuyWeb&key=AIzaSyDDpCvJ5fhNFcGy-exLOOfC2DULQWtnJFc
 
+https://www.googleapis.com/youtube/v3/search?part=snippet&q=html&maxResults=10&key=AIzaSyDDpCvJ5fhNFcGy-exLOOfC2DULQWtnJFc
+
 ### This is an overview of the specific url that gets information for a channel. Changing the "forUsername" variable directs the URL to the specific channel. Review the JSON below to see the information returned.
 
 <hr><br><br>

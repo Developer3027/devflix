@@ -37,7 +37,7 @@ const dateStampFolder = (prefix) => `${prefix}_${dateStamp()}`
  *  If you do use a system flag other than 'w' or 'a', the <code>appendFile</code> property will be ignored.
  *  See https://nodejs.org/api/fs.html#fs_file_system_flags for more information
  * </pre> 
- * @return {promise} A promise indicating success or failure of the writeFile or appendFile operation.
+ * @return {Promise} A promise indicating success or failure of the writeFile or appendFile operation.
  *
  * @example
  *  // standalone

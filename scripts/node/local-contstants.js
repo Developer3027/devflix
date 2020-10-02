@@ -3,9 +3,12 @@ const ERROR_MISSING_VIDEO_ID_PARAM = 'The config argument of this method require
 const ERROR_MISSING_KEY_PARAM = 'The config argument of this method requires a key property representing a valid API key. This required property was not found.'
 const ERROR_BAD_ENV_PATH = 'Could not find required file at expected location: ';
 
-const DECOR_HR = 
+const ONE_MEGABYTE = 1000000
 
 module.exports = {
+  numbers: {
+    ONE_MEGABYTE
+  },
   decor: {
     HR: '-------------------------'
   },

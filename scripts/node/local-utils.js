@@ -7,6 +7,13 @@ const isUriEncoded = (uri = '') => uri !== decodeURI(uri)
 const isUriComponentEncoded = (uri = '') => uri !== decodeURIComponent(uri)
 const escapeDoubleQuotes = (str) => str.replace(/\\([\s\S])|(")/g,"\\$1$2")
 const stringify = (input) => (typeof input === 'object') ? JSON.stringify(input) : input
+const timeStamp = () => new Date().toISOString().slice(11, 22).replace(/:/g, '.')
+const dateStamp = () => {
+  let d = new Date().toISOString().slice(0, 10).split('-')
+  return [d[1], d[2], d[0]].join('-')
+}
+const timeStampFile = (prefix, fileExt) => `${prefix}_${timeStamp()}${fileExt ? '_' + fileExt : ''}`
+const dateStampFolder = (prefix) => `${prefix}_${dateStamp()}`
 
 // END: standard helper methods
 
@@ -72,6 +79,32 @@ const writeFile = (uri, data, options = { appendFile: false }) => new Promise((r
     resolve(`Success with file: ${uri}`)
   })
 })
+/**
+ * Safely creates a directory if it does not exist.
+ *
+ * @param {string} path - The path to the directory
+ * @param {integer} mask - Optional: An octal integer representing the permissions of the directory
+ * @param {function} cb - A callback function to handle errors
+ * 
+ * @example
+ *
+ *  createDirIfNeeded(__dirname + '/upload', 0744, function(err) {
+ *    if (err) // handle folder creation error
+ *    else // we're all good
+ *  });
+ */
+function createDirIfNeeded(path, mask, cb) {
+  if (typeof mask == 'function') { // allow the `mask` parameter to be optional
+      cb = mask;
+      mask = 0777;
+  }
+  fs.mkdir(path, mask, function(err) {
+      if (err) {
+          if (err.code == 'EEXIST') cb(null); // ignore the error if the folder already exists
+          else cb(err); // something else went wrong
+      } else cb(null); // successfully created folder
+  });
+}
 // END: file system helper methods
 
 module.exports = {
@@ -80,10 +113,12 @@ module.exports = {
     warn,
     isUriEncoded,
     isUriComponentEncoded,
-    escapeDoubleQuotes
+    escapeDoubleQuotes,
+    timeStampFile,
+    dateStampFolder
   },
   fileSystem: {
-    writeFile
+    writeFile,
+    createDirIfNeeded,
   }
-
 }

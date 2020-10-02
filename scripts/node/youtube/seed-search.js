@@ -18,7 +18,6 @@ const dumpPath = path.resolve(__dirname, 'data/dump/')
 require.main.paths.push(path.resolve(__dirname, '../'))
 const util = require('local-utils').standard;
 const fsUtil = require('local-utils').fileSystem;
-const { throwFatal } = require('../local-utils');
 const err = require('local-contstants').errors;
 const decor = require('local-contstants').decor;
 // END: Share files in the node scripts root such as local utils 
@@ -29,6 +28,8 @@ envResult.error && (
     ? util.throwFatal( err.ERROR_BAD_ENV_PATH + /'(.*?)'/.exec(envResult.error)[0] ) 
     : util.throwFatal(envResult.error)
 )
+
+fsUtil.createDirIfNeeded(dumpPath, 0o744, err => err && util.throwFatal(err))
 
 const KEY = process.env.YOUTUBE_API_KEY;
 const BASE_URL = process.env.YOUTUBE_API_BASE_URL;
@@ -83,7 +84,24 @@ const getVideoListById = (id, config) => {
 }
 
 let terms = [];
-terms.push('complete react tutorial 2020');
+terms.push('complete react tutorial 2020 -native');
+
+const dumpSearchesToFiles = async (terms) => {
+  const dirPath = path.join(dumpPath, util.dateStampFolder('search'))
+ 
+  fsUtil.createDirIfNeeded(dirPath, 0o744, err => err && util.throwFatal(err))
+
+  for (let i = 0; i < terms.length; i++) {
+    let fileName = util.timeStampFile(`search-list${i + 1}`, '.json')
+    
+    await fsUtil.writeFile(path.join(dirPath, fileName), terms[i])
+      .then(success => console.log(success))
+      .catch(e => console.log(e))
+  }
+}
+
+dumpSearchesToFiles(['bingo', 'bango and zingo', 'dango'])
+
 /*
 // works
 getSearchByTerms(terms[0], {isDryRun: true})
@@ -97,10 +115,10 @@ getSearchByTerms(terms[0], {isDryRun: true})
     util.warn(`async search result FAILED using terms: ${terms}, Message: ${err.message}`)
     console.log(`${decor.HR}\n`)
   })
-
+*/
 let videoIds = [];
 videoIds.push('lh7pcHeGnsU');
-*/
+
 
 /*
 // works
@@ -115,5 +133,3 @@ getVideoListById(videoIds[0])
   .then( res => console.log(`async video list complete, default language code: ${res.data.items[0].snippet.defaultAudioLanguage}`) )
   .catch( err => warn(`async video list result FAILED for videoId: ${videoIds[0]}, Message: ${err.message}\n${err}`) )
 */
-
- 

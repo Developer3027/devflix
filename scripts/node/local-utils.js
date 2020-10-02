@@ -9,7 +9,7 @@ const escapeDoubleQuotes = (str) => str.replace(/\\([\s\S])|(")/g,"\\$1$2")
 const stringify = (input) => (typeof input === 'object') ? JSON.stringify(input) : input
 const timeStamp = () => new Date().toISOString().slice(11, 22).replace(/:/g, '.')
 const dateStamp = () => {
-  let d = new Date().toISOString().slice(0, 10).split('-')
+  const d = new Date().toISOString().slice(0, 10).split('-')
   return [d[1], d[2], d[0]].join('-')
 }
 const timeStampFile = (prefix, fileExt) => `${prefix}_${timeStamp()}${fileExt ? '_' + fileExt : ''}`

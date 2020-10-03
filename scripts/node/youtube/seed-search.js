@@ -8,23 +8,37 @@
  */
 
 const axios = require('axios').default;
-
 const path = require('path')
+
+const dumpPath = path.resolve(__dirname, 'data/dump/')
 const envPath = path.resolve(__dirname, '../../local.env')
 const envResult = require('dotenv').config({path: envPath, encoding: 'latin1'})
-const dataPath = path.resolve(__dirname, 'data')
-const dumpPath = path.resolve(__dirname, 'data/dump/')
 
-// BEGIN: Share files in the node scripts root such as local utils 
-require.main.paths.push(dataPath)
+// BEGIN: Shared files
+/* 
+  NOTE: This is a hack for 'local' modules
+  so they dont have to be qualified npm modules.
+  this will not work when nested. Meaning it seems like
+  you cannot share files that share files though.
+*/
+
+// script root
 require.main.paths.push(path.resolve(__dirname, '../'))
+
+// database initializer 
+require.main.paths.push(path.resolve(__dirname, '../firebase'))
+
+// local seed data
+require.main.paths.push(path.resolve(__dirname, 'data')) 
+
+const initFirebase = require('init-firebase')
 const SEED = require('local-seed')
 const util = require('local-utils').standard;
 const fsUtil = require('local-utils').fileSystem;
 const err = require('local-contstants').errors;
 const decor = require('local-contstants').decor;
 const SIZE = require('local-contstants').numbers;
-// END: Share files in the node scripts root such as local utils 
+// END: Shared files 
 
 /* 
 // temp stuff, sample api request we will probably need to use
@@ -41,6 +55,23 @@ envResult.error && (
     ? util.throwFatal( err.ERROR_BAD_ENV_PATH + /'(.*?)'/.exec(envResult.error)[0] ) 
     : util.throwFatal(envResult.error)
 )
+
+const firebase = initFirebase.initalizeApp(initFirebase.getDevelopmentConfig())
+const db = firebase.firestore()
+
+const testDb = (db, collectionName) => {
+  return db.collection(collectionName)
+}
+
+testDb(db, 'test')
+  .get()
+  .then((snapshot) => {
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    console.log("All data in 'test' collection", data); 
+  });
 
 try {
   fsUtil.createDirIfNeeded(dumpPath, 0o744, err => err && util.throwFatal(err))

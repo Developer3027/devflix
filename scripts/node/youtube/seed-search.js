@@ -217,9 +217,10 @@ const dumpSearchesToFiles = async (terms, config) => {
         console.log('getSearchByTerms() --> Success: youtube API search request') // TODO: do this better
         const uri = path.join(dirPath, fileName)
         await fsUtil.writeFile(uri, JSON.stringify(result.data ? result.data : result, null, 2))
-          .then(success => { // writeFile errors are caught here
+          .then(success => {
             console.log(success)
           })
+          // writeFile errors are caught here
           .catch(e => console.log(` ERROR --> writing file ${uri}: ${e}`))
       } catch (err) {
         console.log(err) // preserves the stack trace

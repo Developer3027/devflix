@@ -57,21 +57,27 @@ envResult.error && (
 )
 
 const firebase = initFirebase.initalizeApp(initFirebase.getDevelopmentConfig())
+//const firebase = initFirebase.initalizeApp(initFirebase.getProductionConfig())
+//const db = firebase.firestore()
 const db = firebase.firestore()
 
 const testDb = (db, collectionName) => {
   return db.collection(collectionName)
 }
 
-testDb(db, 'test')
+/*
+// works good
+let testName = 'test' //'films'
+testDb(db, testName)
   .get()
   .then((snapshot) => {
     const data = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
-    console.log("All data in 'test' collection", data); 
+    console.log(`All data in '${testName}' collection`, data); 
   });
+*/
 
 try {
   fsUtil.createDirIfNeeded(dumpPath, 0o744, err => err && util.throwFatal(err))
@@ -114,7 +120,11 @@ const getSearchByTerm = (term = 'cats', config) => {
   const FUNC_NAME = 'getSearchByTerms():';
   const WARN_TERM_ENCODING_MSG = `${FUNC_NAME} Search terms cannot be URI encoded before they are sent
   --> Search terms have been decoded and will be encoded automatically when required.\nOffending terms were: `
+
   const isDryRun = (config && config.hasOwnProperty('isDryRun')) ? config.isDryRun : false
+  // TODO: decide if we should delete the above propertie(s) now (or before the request is made) 
+  // so that they do not get set as query params to the api endpoint. no big deal right now.
+
   const defaultConfig = { 
     q: term, 
     key: KEY,
@@ -125,7 +135,7 @@ const getSearchByTerm = (term = 'cats', config) => {
     relevanceLanguage: 'en'
   }
   // merge configs, if a config is passed in then it takes precedence over the defaults
-  const params = ( config ) ? {...defaultConfig, ...config } : defaultConfig
+  const params = {...defaultConfig, ...config }
 
   console.log(`\n${decor.HR}`)
   console.log(`${FUNC_NAME} Performing ${isDryRun ? 'a dry run of' : ''} an async youtube API search request`);
@@ -136,7 +146,7 @@ const getSearchByTerm = (term = 'cats', config) => {
   console.log(`Sending query params: ${JSON.stringify(params, null, 2)}`)
 
   if (isDryRun) {
-    console.log(' --> This is a dry run,  no http request was made.');
+    console.log(' --> This is a dry run,  no search list http request was made.');
     console.log(` --> Search term: ${term}`)
     return Promise.resolve('dry run success')
   }
@@ -144,6 +154,81 @@ const getSearchByTerm = (term = 'cats', config) => {
   return axios.get(BASE_URL + 'search', { params })
 }
 
+// INPROGRESS: to be used on the seedSearches() function
+const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
+  // temp for testing
+  terms = terms.slice(0, 1)
+  
+  const FUNC_NAME = 'getSearchesByTerms():'
+  const isDryRun = (config && config.hasOwnProperty('isDryRun')) ? config.isDryRun : false
+  const isSkipVideoQuery = (config && config.hasOwnProperty('skipVideoQuery')) ? config.skipVideoQuery : false
+
+  const results = []
+
+  console.log(decor.HR)
+  console.log(`${FUNC_NAME} starting...`)
+
+  try {
+    // do search queries
+    for (let i = 0; i < terms.length; i++) {
+      let result;
+      try {
+        result = await getSearchByTerm(terms[i], config)
+        result.data && (result.data.searchTerm = terms[i])
+        results.push(result)
+        console.log(` ${FUNC_NAME} --> Success, youtube API search list request: ${i + 1} of ${terms.length}`)
+      } catch (err) {
+        console.log(err) // preserves the stack trace
+        return Promise.reject(`${FUNC_NAME} Failed: ${err}`)
+      }
+    }
+    
+    // do video queries if required
+    if (true) { // true is TEMP, need to use something like: result.data to handle dry runs and http requests that return no data
+      if (!isSkipVideoQuery) {
+        for (let i = 0; i < results.length; i++) {
+          const searchTerm = results[i].data.searchTerm
+          console.log(decor.HR)
+          console.log(` ${FUNC_NAME} handling video queries for search list result: ${searchTerm}`)
+          console.log(decor.HR)
+          for (let j = 0; j < results[i].data.items.length; j++) {  
+            const videoId = results[i].data.items[j].id.videoId
+            console.log( `  --> making a video list request for videoId: ${videoId}`)
+            try {
+              const videoResult = await getVideoListById(videoId)
+
+              //videoResult.data && console.log(`received data: ${JSON.stringify(videoResult.data)}`) // uncomment if needed for testing
+
+              console.log(`  request successful for videoId: ${videoId} <--`)
+
+              if (!videoResult.data) {
+                console.log(`ERROR: The response for videoId: ${videoId} contained no data object! defaultLanguageId was not gathered!`)
+              } else {
+                const defaultAudioLanguage = videoResult.data.items[0].snippet.defaultAudioLanguage 
+                console.log(`inserting defaultLanguageId: '${defaultAudioLanguage}' into the id object of the proper video item in the search results for term: ${results[i].data.searchTerm}`)
+                results[i].data.items[j].id.defaultAudioLanguage = defaultAudioLanguage
+              }
+            } catch (err) {
+              console.log(err)
+              return Promise.reject(`async video list result FAILED for videoId: ${videoId},  ${err}`)
+            }
+          }
+        }
+      }
+    } else {
+      // If it is not a dry run and there is no data we have a non fatal error.
+      !isDryRun && console.log(' ERROR: There was no data in the response from the https request! Aborting.')
+      // otherwise assume if it's a dry run and everything is OK.
+      isDryRun && console.log(` --> would have made a video query but this is a dry run ;)`)
+    }
+
+  } catch (err) {
+    console.log(err)
+    return Promise.reject(`FAILED: ${err}`)
+  }
+
+  return Promise.resolve(results)
+}
 const getVideoListById = (id, config) => {
   !id && util.throwFatal(err.ERROR_MISSING_VIDEO_ID)
   config && !config.hasOwnProperty('key') && throwFatal(err.ERROR_MISSING_VIDEO_ID_PARAM)
@@ -166,23 +251,12 @@ const getVideoListById = (id, config) => {
  *
  * @example
  * // With async/await and error handling using the default axios config
- * try {
- *    let result = await getSearchByTerm('neat stuff')
-      result.data && console.log(`received data: ${result.data})
-      console.log('Success: youtube API search request')
- * } catch (e) console.log(e)
+ * TBD
  *
- *  // With promises (and accounting for a dry run)
- *  getSearchByTerm('neat stuff')
- *   .then( res => { 
- *     console.log(`search result complete: 
- *       ${res.hasOwnProperty('data')
-         ? JSON.stringify(res.data, null, 2) 
-         : JSON.stringify(res, null, 2)}`)
-      })
-      .catch( err => {
-        console.log(err)
-      })
+ *  // With promises, using the default configuration and omitting the http request
+    dumpSearchesToFiles(SEED.frontendSearchTerms, { isDryRun: true })
+      .then((res) => console.log(res))
+      .catch(e=>console.log(e))
  */
 const dumpSearchesToFiles = async (terms, config) => {
   const FUNC_NAME = 'dumpSearchesToFiles():'
@@ -190,6 +264,7 @@ const dumpSearchesToFiles = async (terms, config) => {
   const FAILURE_MSG = `${FUNC_NAME} ABORTED, there was a failure --> `
 
   let dirPath;
+
   try {
     dirPath = path.join(dumpPath, util.dateStampFolder('search'))
     fsUtil.createDirIfNeeded(dirPath, 0o744, err => { if (err) console.log('  --> ERROR, Could not create date stamped folder: ' + err)})
@@ -207,7 +282,7 @@ const dumpSearchesToFiles = async (terms, config) => {
       100 search requests to the API will drain the entire 10000 point quota for the day.
     */
     terms = terms.slice(0, 1) 
-  
+    
     for (let i = 0; i < terms.length; i++) {
       let result;
       let fileName = util.timeStampFile(`search-list${i + 1}`, '.json')
@@ -234,10 +309,94 @@ const dumpSearchesToFiles = async (terms, config) => {
   return Promise.resolve(SUCCESS_MSG)
 }
 
-const testDry = { isDryRun: true }
+
+
+ 
+/**
+ * IMPORTANT NOTE: THIS WILL REPLACE dumpSearchesToFiles()!!!
+ * Queries and dumps search list results to the database and or local files.
+ * A seperate video query is made for each video in the search list, and the
+ * <code>defaultLanguageId</code> property is added to the data object returned.
+ * The video query can be omitted by adding <code>skipVideoQuery: true</code>
+ * to the <code>config</code> argument. The https requests (queries) can be 
+ * skipped by adding <code>isDryRun: true</code> to the <code>config</code> argument.
+ *
+ * @param {string} terms - An array of keywords string to use for the searches. Keyword strings supports boolean | (OR) and boolean - (NOT). Do not escape/URI encode keyword strings.
+ * @param {boolean} writeFileCb - (optional) A callback to used to write each search list query to a seperate file.
+ * @param {object} - (optional) Axios configuration object for the requests.<br />
+ * Special properties for this object are: <br />
+ * <code>isDryRun (boolean>)</code> - If <code>true</code> the http request will be omitted (for testing)<br />
+ * <code>skipVideoQuery (boolean)</code> - If <code>true</code> the video query for each search list result will be skipped.<br />
+ * @return {object} An an array of objects representing the json data returned from each search and or video query made.
+ * @example
+ *
+ *     TBD
+ */
+// TODO: utilize getSearchesByTerms() in the code below to handle the functionality describe in the jsdoc above.
+const seedSearches = async (terms, writeFileCb, config) => {
+  // temp for testing
+  terms = terms.slice(0, 2)
+
+  const FUNC_NAME = 'seedSearches():'
+  const SUCCESS_MSG = `${FUNC_NAME} Process completed. Check the log for any possible errors.`
+  const FAILURE_MSG = `${FUNC_NAME} ABORTED, there was a failure --> `
+  
+  let dirPath;
+
+  if (typeof writeFileCb !== 'function' ) { // Allow writeToFiles to be an optional parameter
+    config = writeFileCb
+    writeFileCb = false
+  } 
+
+  try {
+    if (writeFileCb) {
+      dirPath = path.join(dumpPath, util.dateStampFolder('search'))
+      fsUtil.createDirIfNeeded(dirPath, 0o744, err => { if (err) console.log('  --> ERROR, Could not create date stamped folder: ' + err)})
+    }
+  } catch (err) {
+    console.log(err)
+    return Promise.reject(err)
+  }
+
+  try {
+
+    // main logic goes here
+    
+/*
+    // TODO: test error handling
+    getSearchesByTerms(terms, config)
+    .then((res) => {
+      // logic to write to file, and or dump to database goes here
+    })
+    .catch(e=>console.log(e))
+*/
+
+  } catch (err) {
+    console.log(err)
+    return Promise.reject(`FAIL: ${err}`)
+  }
+  return Promise.resolve(`SUCCESS!`)
+}
+
+const testConfig = { isDryRun: false, skipVideoQuery: false, }
+getSearchesByTerms(SEED.frontendSearchTerms, testConfig)
+  .then((res) => {
+    console.log(`getSearchesByTerms() completed. Check the log for any non fatal errors`)
+    /*
+    fsUtil.writeFile(path.join(dumpPath, 'getSearchesByTerms-output.json'), res)
+      .then(success => console.log(success))
+      .catch(e => console.log(e))
+      */
+    console.log(` final result of the first search result is (with defaultAudioLanguage inserted): ${JSON.stringify(res[0].data, null, 2)}`)
+    console.log(decor.HR)
+  })
+  .catch(e=>console.log(e))
+/*
+// works good
 dumpSearchesToFiles(SEED.frontendSearchTerms, testDry)
   .then((res) => console.log(res))
   .catch(e=>console.log(e))
+*/
 
 let videoIds = [];
 videoIds.push('lh7pcHeGnsU');

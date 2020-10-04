@@ -154,7 +154,7 @@ const getSearchByTerm = (term = 'cats', config) => {
   return axios.get(BASE_URL + 'search', { params })
 }
 
-// INPROGRESS: to be used on the seedSearches() function
+// Works good. Yay! TODO: jsdoc it, handle dry runs and the edge case where there is no data in the search list response
 const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
   // temp for testing
   terms = terms.slice(0, 1)
@@ -229,6 +229,7 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
 
   return Promise.resolve(results)
 }
+// Works good. TODO: jsdoc, ensure axios data limit is more than 2000 bytes
 const getVideoListById = (id, config) => {
   !id && util.throwFatal(err.ERROR_MISSING_VIDEO_ID)
   config && !config.hasOwnProperty('key') && throwFatal(err.ERROR_MISSING_VIDEO_ID_PARAM)
@@ -243,7 +244,7 @@ const getVideoListById = (id, config) => {
   return axios.get(BASE_URL + 'videos', { params })
 }
 
-/**
+/** NOTE: THIS FUNCTION WILL BE REPLACED BY seedSearches() function.
  * Makes a series of youtube API search list requests and dumps them to timestamped files in a datestamped folder. Requires a folder named 'data' to be in the root.
  *
  * @param {string} terms - An array of keywords string to use for the searches. Keyword strings supports boolean | (OR) and boolean - (NOT). Do not escape/URI encode keyword strings.
@@ -361,7 +362,7 @@ const seedSearches = async (terms, writeFileCb, config) => {
   try {
 
     // main logic goes here
-    
+
 /*
     // TODO: test error handling
     getSearchesByTerms(terms, config)
@@ -378,6 +379,10 @@ const seedSearches = async (terms, writeFileCb, config) => {
   return Promise.resolve(`SUCCESS!`)
 }
 
+
+
+
+// BEGIN: Testing the code
 const testConfig = { isDryRun: false, skipVideoQuery: false, }
 getSearchesByTerms(SEED.frontendSearchTerms, testConfig)
   .then((res) => {
@@ -415,3 +420,5 @@ getVideoListById(videoIds[0])
   .then( res => console.log(`async video list complete, default language code: ${res.data.items[0].snippet.defaultAudioLanguage}`) )
   .catch( err => warn(`async video list result FAILED for videoId: ${videoIds[0]}, Message: ${err.message}\n${err}`) )
 */
+
+// END: Testing the code

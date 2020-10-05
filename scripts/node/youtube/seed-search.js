@@ -35,9 +35,11 @@ const initFirebase = require('init-firebase')
 const SEED = require('local-seed')
 const util = require('local-utils').standard;
 const fsUtil = require('local-utils').fileSystem;
-const err = require('local-contstants').errors;
-const decor = require('local-contstants').decor;
-const SIZE = require('local-contstants').numbers;
+const ERR = require('local-constants').errors;
+const DECOR = require('local-constants').decor;
+const SIZE = require('local-constants').numbers;
+const MSG = require('local-constants').messages;
+
 // END: Shared files 
 
 /* 
@@ -52,10 +54,20 @@ https://www.googleapis.com/youtube/v3/channels?part=snippet%2C contentDetails%2C
 // BEGIN: Bootstrap
 envResult.error && (
   (/ENOENT/).test(envResult.error) 
-    ? util.throwFatal( err.ERROR_BAD_ENV_PATH + /'(.*?)'/.exec(envResult.error)[0] ) 
+    ? util.throwFatal( ERR.ERROR_BAD_ENV_PATH + /'(.*?)'/.exec(envResult.error)[0] ) 
     : util.throwFatal(envResult.error)
 )
-
+// simulates options being passed to the script, use and edit the values here below until a proper options systems is implemented
+const globalOptions = {
+  dryRun: false, /* implement today */
+  dryRunVideoCount: 5,
+  skipVideoRequests: false, /* implement today */
+  writeLogToFile: false,
+  writeSearchRequestsToFiles: false, /* implement today */
+  writeVideoRequestsToFiles: false, /* implement today */
+  WriteFinalResultToFile: false, /* implement today */
+  writeFinalResultToDatabase: false,
+}
 const firebase = initFirebase.initalizeApp(initFirebase.getDevelopmentConfig())
 //const firebase = initFirebase.initalizeApp(initFirebase.getProductionConfig())
 //const db = firebase.firestore()
@@ -121,10 +133,6 @@ const getSearchByTerm = (term = 'cats', config) => {
   const WARN_TERM_ENCODING_MSG = `${FUNC_NAME} Search terms cannot be URI encoded before they are sent
   --> Search terms have been decoded and will be encoded automatically when required.\nOffending terms were: `
 
-  const isDryRun = (config && config.hasOwnProperty('isDryRun')) ? config.isDryRun : false
-  // TODO: decide if we should delete the above propertie(s) now (or before the request is made) 
-  // so that they do not get set as query params to the api endpoint. no big deal right now.
-
   const defaultConfig = { 
     q: term, 
     key: KEY,
@@ -137,18 +145,18 @@ const getSearchByTerm = (term = 'cats', config) => {
   // merge configs, if a config is passed in then it takes precedence over the defaults
   const params = {...defaultConfig, ...config }
 
-  console.log(`\n${decor.HR}`)
-  console.log(`${FUNC_NAME} Performing ${isDryRun ? 'a dry run of' : ''} an async youtube API search request`);
+  console.log(`\n${DECOR.HR}`)
+  console.log(` Performing ${globalOptions.dryRun ? 'a dry run of' : ''} a youtube API search list request`);
 
   // Handle warninigs
   util.isUriEncoded(term) && ( term = decodeURI(terms), util.warn(WARN_TERM_ENCODING_MSG + encodeURI(term)) )
 
-  console.log(`Sending query params: ${JSON.stringify(params, null, 2)}`)
+  console.log(` Sending query params: ${JSON.stringify(params, null, 2)}`)
 
-  if (isDryRun) {
-    console.log(' --> This is a dry run,  no search list http request was made.');
+  if (globalOptions.dryRun) {
+    console.log(` --> ${MSG.DRY_RUN}, no search list http request was actually made.`);
     console.log(` --> Search term: ${term}`)
-    return Promise.resolve('dry run success')
+    return Promise.resolve(`search list request: ${MSG.DRY_RUN_SUCCESS}`)
   }
 
   return axios.get(BASE_URL + 'search', { params })
@@ -160,68 +168,72 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
   terms = terms.slice(0, 1)
   
   const FUNC_NAME = 'getSearchesByTerms():'
-  const isDryRun = (config && config.hasOwnProperty('isDryRun')) ? config.isDryRun : false
-  const isSkipVideoQuery = (config && config.hasOwnProperty('skipVideoQuery')) ? config.skipVideoQuery : false
 
   const results = []
 
-  console.log(decor.HR)
-  console.log(`${FUNC_NAME} starting...`)
+  console.log(DECOR.HR_FANCY)
+  console.log(`${FUNC_NAME} STARTING${globalOptions.dryRun ? ' a dry run ' : ''}...`)
 
+  let result;
   try {
     // do search queries
     for (let i = 0; i < terms.length; i++) {
-      let result;
       try {
         result = await getSearchByTerm(terms[i], config)
         result.data && (result.data.searchTerm = terms[i])
         results.push(result)
-        console.log(` ${FUNC_NAME} --> Success, youtube API search list request: ${i + 1} of ${terms.length}`)
+        console.log(` ${FUNC_NAME} --> Success${globalOptions.dryRun ? 'ful dry run' : ''}, youtube API search list request: ${i + 1} of ${terms.length}`)
       } catch (err) {
         console.log(err) // preserves the stack trace
         return Promise.reject(`${FUNC_NAME} Failed: ${err}`)
       }
     }
-    
-    // do video queries if required
-    if (true) { // true is TEMP, need to use something like: result.data to handle dry runs and http requests that return no data
-      if (!isSkipVideoQuery) {
-        for (let i = 0; i < results.length; i++) {
-          const searchTerm = results[i].data.searchTerm
-          console.log(decor.HR)
-          console.log(` ${FUNC_NAME} handling video queries for search list result: ${searchTerm}`)
-          console.log(decor.HR)
-          for (let j = 0; j < results[i].data.items.length; j++) {  
-            const videoId = results[i].data.items[j].id.videoId
-            console.log( `  --> making a video list request for videoId: ${videoId}`)
-            try {
-              const videoResult = await getVideoListById(videoId)
+    // do video queries
+    if (result.data || globalOptions.dryRun) {
+      for (let i = 0; i < results.length; i++) {
+        let videoTotal = (
+          globalOptions.dryRun 
+          ? globalOptions.dryRunVideoCount 
+          : results[i].data.items.length
+        )
+        if (!globalOptions.skipVideoRequests) {
+          console.log(` \n${FUNC_NAME} handling video list requests for search list result: ${terms[i]}`)
+          globalOptions.dryRun && console.log(`   The next ${videoTotal} video list requests will be faked since this is a dry run.\n`)
+        } else videoTotal = 0;
+        for (let j = 0; j < videoTotal; j++) {  
+          const videoId = globalOptions.dryRun ? 'FAKE ID' : results[i].data.items[j].id.videoId
+          try {
+            console.log(`Making video list request ${j + 1} of ${videoTotal}. ${globalOptions.dryRun 
+              ? 'This is a dry run, no http request was made.'
+              : ''}`
+            )
+            const videoResult = await getVideoListById(videoId)
+            //videoResult.data && console.log(`received data: ${JSON.stringify(videoResult.data)}`) // uncomment if needed for testing
 
-              //videoResult.data && console.log(`received data: ${JSON.stringify(videoResult.data)}`) // uncomment if needed for testing
-
-              console.log(`  request successful for videoId: ${videoId} <--`)
-
-              if (!videoResult.data) {
-                console.log(`ERROR: The response for videoId: ${videoId} contained no data object! defaultLanguageId was not gathered!`)
-              } else {
-                const defaultAudioLanguage = videoResult.data.items[0].snippet.defaultAudioLanguage 
-                console.log(`inserting defaultLanguageId: '${defaultAudioLanguage}' into the id object of the proper video item in the search results for term: ${results[i].data.searchTerm}`)
-                results[i].data.items[j].id.defaultAudioLanguage = defaultAudioLanguage
+            if (!videoResult.data) {
+              if (globalOptions.dryRun) {
+                console.log(' No real data was returned but here is where the defaultAudioLanguage would be gathered and inserted into the final results.')
+              }  else {
+                console.log(` ERROR: The response for videoId: ${videoId} had no data object! defaultLanguageId was not gathered!`)
               }
-            } catch (err) {
-              console.log(err)
-              return Promise.reject(`async video list result FAILED for videoId: ${videoId},  ${err}`)
+
+            } else { // No dryRun and data was returned a from the http request as expected so carry on...
+              const defaultAudioLanguage = videoResult.data.items[0].snippet.defaultAudioLanguage
+
+              console.log(`  ${globalOptions.dryRun ? 'FAKE (dry run)' : 'http ' }request successful for videoId: ${JSON.stringify(results[i].data.items[j].id.videoId)} <--`)
+              console.log(`inserting defaultLanguageId: '${defaultAudioLanguage}' into the id object of the proper video item in the search results for term: ${results[i].data.searchTerm}`)
+              
+              results[i].data.items[j].id.defaultAudioLanguage = defaultAudioLanguage
             }
+          } catch (err) {
+            console.log(err)
+            return Promise.reject(`async video list result FAILED for videoId: ${videoId},  ${err}`)
           }
         }
       }
-    } else {
-      // If it is not a dry run and there is no data we have a non fatal error.
-      !isDryRun && console.log(' ERROR: There was no data in the response from the https request! Aborting.')
-      // otherwise assume if it's a dry run and everything is OK.
-      isDryRun && console.log(` --> would have made a video query but this is a dry run ;)`)
+    } else { 
+      console.log(' ERROR: There was no data in the response from the https search list request! No video list requests will be made.')
     }
-
   } catch (err) {
     console.log(err)
     return Promise.reject(`FAILED: ${err}`)
@@ -231,8 +243,8 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
 }
 // Works good. TODO: jsdoc, ensure axios data limit is more than 2000 bytes
 const getVideoListById = (id, config) => {
-  !id && util.throwFatal(err.ERROR_MISSING_VIDEO_ID)
-  config && !config.hasOwnProperty('key') && throwFatal(err.ERROR_MISSING_VIDEO_ID_PARAM)
+  !id && util.throwFatal(ERR.ERROR_MISSING_VIDEO_ID)
+  config && !config.hasOwnProperty('key') && throwFatal(ERR.ERROR_MISSING_VIDEO_ID_PARAM)
 
   // all supported parts are: 'contentDetails,localizations,player,snippet'
   const params = {
@@ -240,6 +252,14 @@ const getVideoListById = (id, config) => {
     key: KEY,
     part: 'snippet,contentDetails'
   }
+  if (globalOptions.skipVideoRequests) {
+    console.log(`globalOptions were set to skip the video request.`)
+    return Promise.resolve(`Video request using videoId ${id} was skipped as specified in the globalOptions`)
+  }
+  if (globalOptions.dryRun) {
+    return Promise.resolve('dry run')
+  }
+  console.log( `  --> making a video list http request for videoId: ${id}`)
   //return axios.get(BASE_URL + 'videos', { maxContentLength: SIZE.ONE_MEGABYTE, params })
   return axios.get(BASE_URL + 'videos', { params })
 }
@@ -383,17 +403,20 @@ const seedSearches = async (terms, writeFileCb, config) => {
 
 
 // BEGIN: Testing the code
-const testConfig = { isDryRun: false, skipVideoQuery: false, }
-getSearchesByTerms(SEED.frontendSearchTerms, testConfig)
+//const testConfig = { isDryRun: false, skipVideoQuery: false, } // old way
+globalOptions.dryRun = false
+globalOptions.skipVideoRequests = false
+getSearchesByTerms(SEED.frontendSearchTerms)
   .then((res) => {
-    console.log(`getSearchesByTerms() completed. Check the log for any non fatal errors`)
+    
     /*
     fsUtil.writeFile(path.join(dumpPath, 'getSearchesByTerms-output.json'), res)
       .then(success => console.log(success))
       .catch(e => console.log(e))
       */
-    console.log(` final result of the first search result is (with defaultAudioLanguage inserted): ${JSON.stringify(res[0].data, null, 2)}`)
-    console.log(decor.HR)
+    globalOptions.dryRun || console.log(` Final result (entire data object): ${JSON.stringify(res[0].data, null, 2)}`)
+    console.log(`getSearchesByTerms() ${globalOptions.dryRun ? 'dry run' : ''} COMPLETED. Check the log for any non fatal errors`)
+    console.log(DECOR.HR_FANCY)
   })
   .catch(e=>console.log(e))
 /*

@@ -162,45 +162,47 @@ const getSearchByTerm = (term = 'cats', config) => {
   return axios.get(BASE_URL + 'search', { params })
 }
 
-// Works good. Yay! TODO: jsdoc it, handle dry runs and the edge case where there is no data in the search list response
+// Works good.TODO: jsdoc it, handle dry runs, skipping video requests and the edge case where there is no data in the search list response
 const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
-  // temp for testing
-  terms = terms.slice(0, 1)
-  
+  terms = terms.slice(0, 2)  // temp for testing
   const FUNC_NAME = 'getSearchesByTerms():'
-
   const results = []
+  let result;
 
   console.log(DECOR.HR_FANCY)
   console.log(`${FUNC_NAME} STARTING${globalOptions.dryRun ? ' a dry run ' : ''}...`)
-
-  let result;
   try {
-    // do search queries
+    // Do a search list request for each term
     for (let i = 0; i < terms.length; i++) {
       try {
         result = await getSearchByTerm(terms[i], config)
         result.data && (result.data.searchTerm = terms[i])
         results.push(result)
-        console.log(` ${FUNC_NAME} --> Success${globalOptions.dryRun ? 'ful dry run' : ''}, youtube API search list request: ${i + 1} of ${terms.length}`)
+
+        console.log(` ${FUNC_NAME} --> Success${
+          globalOptions.dryRun
+            ? 'for dry run'
+            : ''}, youtube API search list request: ${i + 1} of ${terms.length}`)
+
       } catch (err) {
         console.log(err) // preserves the stack trace
         return Promise.reject(`${FUNC_NAME} Failed: ${err}`)
       }
     }
-    // do video queries
+    // Loop through the search list responses
     if (result.data || globalOptions.dryRun) {
       for (let i = 0; i < results.length; i++) {
         let videoTotal = (
           globalOptions.dryRun 
-          ? globalOptions.dryRunVideoCount 
-          : results[i].data.items.length
+            ? globalOptions.dryRunVideoCount 
+            : results[i].data.items.length
         )
         if (!globalOptions.skipVideoRequests) {
           console.log(` \n${FUNC_NAME} handling video list requests for search list result: ${terms[i]}`)
           globalOptions.dryRun && console.log(`   The next ${videoTotal} video list requests will be faked since this is a dry run.\n`)
         } else videoTotal = 0;
-        for (let j = 0; j < videoTotal; j++) {  
+        // Loop through each video in each response
+        for (let j = 0; j < videoTotal; j++) {
           const videoId = globalOptions.dryRun ? 'FAKE ID' : results[i].data.items[j].id.videoId
           try {
             console.log(`Making video list request ${j + 1} of ${videoTotal}. ${globalOptions.dryRun 
@@ -209,20 +211,21 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
             )
             const videoResult = await getVideoListById(videoId)
             //videoResult.data && console.log(`received data: ${JSON.stringify(videoResult.data)}`) // uncomment if needed for testing
-
             if (!videoResult.data) {
               if (globalOptions.dryRun) {
-                console.log(' No real data was returned but here is where the defaultAudioLanguage would be gathered and inserted into the final results.')
+                console.log(` No real data was returned but here is where the 
+                defaultAudioLanguage would be gathered and inserted into the final results.`)
               }  else {
                 console.log(` ERROR: The response for videoId: ${videoId} had no data object! defaultLanguageId was not gathered!`)
               }
-
-            } else { // No dryRun and data was returned a from the http request as expected so carry on...
+            } else { // There was no dryRun and data was returned a from the http request as expected so carry on with the normal flow...
               const defaultAudioLanguage = videoResult.data.items[0].snippet.defaultAudioLanguage
-
-              console.log(`  ${globalOptions.dryRun ? 'FAKE (dry run)' : 'http ' }request successful for videoId: ${JSON.stringify(results[i].data.items[j].id.videoId)} <--`)
-              console.log(`inserting defaultLanguageId: '${defaultAudioLanguage}' into the id object of the proper video item in the search results for term: ${results[i].data.searchTerm}`)
-              
+              console.log(`  ${globalOptions.dryRun
+                ? 'FAKE (dry run)'
+                : 'http ' }request successful for videoId: ${JSON.stringify(results[i].data.items[j].id.videoId)} <--`)
+              console.log(`inserting defaultLanguageId: '${
+                  defaultAudioLanguage
+                }' into the id object of the proper video item in the search results for term: ${results[i].data.searchTerm}`)
               results[i].data.items[j].id.defaultAudioLanguage = defaultAudioLanguage
             }
           } catch (err) {
@@ -238,7 +241,6 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
     console.log(err)
     return Promise.reject(`FAILED: ${err}`)
   }
-
   return Promise.resolve(results)
 }
 // Works good. TODO: jsdoc, ensure axios data limit is more than 2000 bytes

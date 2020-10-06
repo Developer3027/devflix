@@ -31,7 +31,7 @@ require.main.paths.push(path.resolve(__dirname, '../firebase'))
 // local seed data
 require.main.paths.push(path.resolve(__dirname, 'data')) 
 
-const initFirebase = require('init-firebase')
+const firebaseSetup = require('local-firebase')
 const SEED = require('local-seed')
 const util = require('local-utils').standard;
 const fsUtil = require('local-utils').fileSystem;
@@ -59,25 +59,24 @@ envResult.error && (
 )
 // simulates options being passed to the script, use and edit the values here below until a proper options systems is implemented
 const globalOptions = {
-  dryRun: false, /* implement today */
+  dryRun: false, 
   dryRunVideoCount: 5,
-  skipVideoRequests: false, /* implement today */
-  writeLogToFile: false,
+  skipVideoRequests: false, 
+  writeLogToFile: false, /* TODO: implement */
   writeSearchRequestsToFiles: false, /* implement today */
   writeVideoRequestsToFiles: false, /* implement today */
   WriteFinalResultToFile: false, /* implement today */
-  writeFinalResultToDatabase: false,
+  writeFinalResultToDatabase: false, /* TODO: implement */
 }
-const firebase = initFirebase.initalizeApp(initFirebase.getDevelopmentConfig())
-//const firebase = initFirebase.initalizeApp(initFirebase.getProductionConfig())
-//const db = firebase.firestore()
-const db = firebase.firestore()
+
+
+const db = firebaseSetup.development.get().firestore()
 
 const testDb = (db, collectionName) => {
   return db.collection(collectionName)
 }
 
-/*
+
 // works good
 let testName = 'test' //'films'
 testDb(db, testName)
@@ -89,7 +88,7 @@ testDb(db, testName)
     }));
     console.log(`All data in '${testName}' collection`, data); 
   });
-*/
+
 
 try {
   fsUtil.createDirIfNeeded(dumpPath, 0o744, err => err && util.throwFatal(err))
@@ -132,7 +131,6 @@ const getSearchByTerm = (term = 'cats', config) => {
   const FUNC_NAME = 'getSearchByTerms():';
   const WARN_TERM_ENCODING_MSG = `${FUNC_NAME} Search terms cannot be URI encoded before they are sent
   --> Search terms have been decoded and will be encoded automatically when required.\nOffending terms were: `
-
   const defaultConfig = { 
     q: term, 
     key: KEY,
@@ -142,23 +140,16 @@ const getSearchByTerm = (term = 'cats', config) => {
     maxResults: 50,
     relevanceLanguage: 'en'
   }
-  // merge configs, if a config is passed in then it takes precedence over the defaults
-  const params = {...defaultConfig, ...config }
-
+  const params = {...defaultConfig, ...config }  // merge configs, if a config is passed in takes precedence
   console.log(`\n${DECOR.HR}`)
   console.log(` Performing ${globalOptions.dryRun ? 'a dry run of' : ''} a youtube API search list request`);
-
-  // Handle warninigs
   util.isUriEncoded(term) && ( term = decodeURI(terms), util.warn(WARN_TERM_ENCODING_MSG + encodeURI(term)) )
-
   console.log(` Sending query params: ${JSON.stringify(params, null, 2)}`)
-
   if (globalOptions.dryRun) {
     console.log(` --> ${MSG.DRY_RUN}, no search list http request was actually made.`);
     console.log(` --> Search term: ${term}`)
     return Promise.resolve(`search list request: ${MSG.DRY_RUN_SUCCESS}`)
   }
-
   return axios.get(BASE_URL + 'search', { params })
 }
 
@@ -172,24 +163,20 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
   console.log(DECOR.HR_FANCY)
   console.log(`${FUNC_NAME} STARTING${globalOptions.dryRun ? ' a dry run ' : ''}...`)
   try {
-    // Do a search list request for each term
     for (let i = 0; i < terms.length; i++) {
       try {
         result = await getSearchByTerm(terms[i], config)
         result.data && (result.data.searchTerm = terms[i])
         results.push(result)
-
         console.log(` ${FUNC_NAME} --> Success${
           globalOptions.dryRun
             ? 'for dry run'
             : ''}, youtube API search list request: ${i + 1} of ${terms.length}`)
-
       } catch (err) {
         console.log(err) // preserves the stack trace
         return Promise.reject(`${FUNC_NAME} Failed: ${err}`)
       }
     }
-    // Loop through the search list responses
     if (result.data || globalOptions.dryRun) {
       for (let i = 0; i < results.length; i++) {
         let videoTotal = (
@@ -201,7 +188,6 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
           console.log(` \n${FUNC_NAME} handling video list requests for search list result: ${terms[i]}`)
           globalOptions.dryRun && console.log(`   The next ${videoTotal} video list requests will be faked since this is a dry run.\n`)
         } else videoTotal = 0;
-        // Loop through each video in each response
         for (let j = 0; j < videoTotal; j++) {
           const videoId = globalOptions.dryRun ? 'FAKE ID' : results[i].data.items[j].id.videoId
           try {
@@ -239,7 +225,7 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
     }
   } catch (err) {
     console.log(err)
-    return Promise.reject(`FAILED: ${err}`)
+    return Promise.reject(`${FUNC_NAME} FAILED: ${err}`)
   }
   return Promise.resolve(results)
 }
@@ -332,15 +318,13 @@ const dumpSearchesToFiles = async (terms, config) => {
   return Promise.resolve(SUCCESS_MSG)
 }
 
-
-
  
 /**
  * IMPORTANT NOTE: THIS WILL REPLACE dumpSearchesToFiles()!!!
- * Queries and dumps search list results to the database and or local files.
+ * Requests and writes search list results to the database and or local files.
  * A seperate video query is made for each video in the search list, and the
  * <code>defaultLanguageId</code> property is added to the data object returned.
- * The video query can be omitted by adding <code>skipVideoQuery: true</code>
+ * The video querys can be omitted by adding <code>skipVideoQuery: true</code>
  * to the <code>config</code> argument. The https requests (queries) can be 
  * skipped by adding <code>isDryRun: true</code> to the <code>config</code> argument.
  *
@@ -406,21 +390,23 @@ const seedSearches = async (terms, writeFileCb, config) => {
 
 // BEGIN: Testing the code
 //const testConfig = { isDryRun: false, skipVideoQuery: false, } // old way
-globalOptions.dryRun = false
+/*
+globalOptions.dryRun = true
 globalOptions.skipVideoRequests = false
 getSearchesByTerms(SEED.frontendSearchTerms)
   .then((res) => {
     
-    /*
-    fsUtil.writeFile(path.join(dumpPath, 'getSearchesByTerms-output.json'), res)
-      .then(success => console.log(success))
-      .catch(e => console.log(e))
-      */
+
+  //  fsUtil.writeFile(path.join(dumpPath, 'getSearchesByTerms-output.json'), res)
+  //    .then(success => console.log(success))
+  //    .catch(e => console.log(e))
+
     globalOptions.dryRun || console.log(` Final result (entire data object): ${JSON.stringify(res[0].data, null, 2)}`)
     console.log(`getSearchesByTerms() ${globalOptions.dryRun ? 'dry run' : ''} COMPLETED. Check the log for any non fatal errors`)
     console.log(DECOR.HR_FANCY)
   })
   .catch(e=>console.log(e))
+  */
 /*
 // works good
 dumpSearchesToFiles(SEED.frontendSearchTerms, testDry)

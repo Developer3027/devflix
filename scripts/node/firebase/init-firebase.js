@@ -46,7 +46,6 @@ const getProductionConfig = () => {
   }
 }
 
-
 const initalizeApp  = (config) => Firebase.initializeApp(config)
 
 module.exports = { 

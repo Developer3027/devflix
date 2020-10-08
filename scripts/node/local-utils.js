@@ -7,12 +7,13 @@ const isUriEncoded = (uri = '') => uri !== decodeURI(uri)
 const isUriComponentEncoded = (uri = '') => uri !== decodeURIComponent(uri)
 const escapeDoubleQuotes = (str) => str.replace(/\\([\s\S])|(")/g,"\\$1$2")
 const stringify = (input) => (typeof input === 'object') ? JSON.stringify(input) : input
-const timeStamp = () => new Date().toISOString().slice(11, 22).replace(/:/g, '.')
+const timeStamp = () => new Date().toISOString().slice(11, 22)
+const timeStampForFile = () => new Date().toISOString().slice(11, 22).replace(/:/g, '.')
 const dateStamp = () => {
   const d = new Date().toISOString().slice(0, 10).split('-')
   return [d[1], d[2], d[0]].join('-')
 }
-const timeStampFile = (prefix, fileExt) => `${prefix}_${timeStamp()}${fileExt ? '_' + fileExt : ''}`
+const timeStampFile = (prefix, fileExt) => `${prefix}_${timeStampForFile()}${fileExt ? fileExt : ''}`
 const dateStampFolder = (prefix) => `${prefix}_${dateStamp()}`
 
 // END: standard helper methods

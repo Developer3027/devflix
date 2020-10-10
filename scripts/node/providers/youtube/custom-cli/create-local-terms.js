@@ -4,8 +4,11 @@ const path = require('path')
 const c = require('chalk');
 const prompt = require('prompt')
 const { v4: uuidv4 } = require('uuid');
-const hexs = require('../../local-constants.js').colors.ansi256hexs
-const timeStampFile = require('../../local-utils.js').standard.timeStampFile
+
+const sharedLibRoot = path.resolve(__dirname, '../../../')
+const hexs = require(path.resolve(sharedLibRoot, 'local-constants.js')).colors.ansi256hexs
+const timeStampFile = require(path.resolve(sharedLibRoot, 'local-utils.js')).standard.timeStampFile
+const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile('terms', '.txt'))
 
 const isWriteFile = true
 
@@ -28,8 +31,6 @@ const MSG_RULES = c.hex(C.rulesColor)(`RULES:
   3. Term and title lists cannot contain duplicate values.\n`)
 const MSG_BEGIN = c.hex(C.brightGreen)('\n--> Creating local terms(s) objects(s) <--\n')
 const MSG_COMPLETE = c.hex(C.brightGreen)('\n--> Creating local terms terms(s) objects(s) COMPLETE <--\n')
-
-const outputFileUri = path.resolve(__dirname, 'dump/' + timeStampFile('terms', '.txt'))
 
 const log = (...args) => {
   const msg = args.join(' ')
@@ -89,21 +90,16 @@ const promptSchema = {
 let writeFile
 let terms
 let titles
-
 console.log(MSG_WELCOME)
 console.log(MSG_RULES)
-
 prompt.start({message: c.hex(C.brightGreen)('?')})
-
 prompt.get(promptSchema, function (err, result) {
   if (err) throw new Error(err)
-
   terms = result.terms.split(',')
   titles = result.titles.split(',')
-
   return (terms.length != titles.length) 
-  ? console.log( c.red( lengthsMismatchMsg(terms, titles) ) )
-  : main(terms, titles) 
+    ? console.log( c.red( lengthsMismatchMsg(terms, titles) ) )
+    : main(terms, titles) 
 });
 // END: main program
 

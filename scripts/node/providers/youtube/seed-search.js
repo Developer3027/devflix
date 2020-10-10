@@ -10,8 +10,10 @@
 const axios = require('axios').default;
 const path = require('path')
 
+
 const dumpPath = path.resolve(__dirname, 'data/dump/')
-const envPath = path.resolve(__dirname, '../../local.env')
+const sharedLibRoot = path.resolve(__dirname, '../../')
+const envPath = path.resolve(sharedLibRoot, '../local.env')
 const envResult = require('dotenv').config({path: envPath, encoding: 'latin1'})
 
 // BEGIN: Shared files
@@ -22,17 +24,16 @@ const envResult = require('dotenv').config({path: envPath, encoding: 'latin1'})
   you cannot share files that share files though.
 */
 
-// script root
-require.main.paths.push(path.resolve(__dirname, '../'))
+// script 'local' modules root
+require.main.paths.push(sharedLibRoot)
 
-// database initializer 
-require.main.paths.push(path.resolve(__dirname, '../firebase'))
+// local firebase helpers 
+require.main.paths.push(path.resolve(__dirname, sharedLibRoot, 'firebase'))
 
 // local seed data
 require.main.paths.push(path.resolve(__dirname, 'data')) 
 
 const firebaseSetup = require('local-firebase')
-const SEED = require('local-seed')
 const util = require('local-utils').standard;
 const fsUtil = require('local-utils').fileSystem;
 const ERR = require('local-constants').errors;
@@ -57,11 +58,16 @@ envResult.error && (
     ? util.throwFatal( ERR.ERROR_BAD_ENV_PATH + /'(.*?)'/.exec(envResult.error)[0] ) 
     : util.throwFatal(envResult.error)
 )
+
+// temp grab terms data
+const frontEndTerms = require(path.resolve(__dirname, 'data/local-seed.js')).frontendSearchTerms
+
 // simulates options being passed to the script, use and edit the values here below until a proper options systems is implemented
 const globalOptions = {
   dryRun: false, 
   dryRunVideoCount: 5,
-  skipVideoRequests: false, 
+  skipVideoRequests: false,
+  useNetworkStub: false, 
   writeLogToFile: false, /* TODO: implement */
   writeSearchRequestsToFiles: false, /* implement today */
   writeVideoRequestsToFiles: false, /* implement today */
@@ -69,40 +75,65 @@ const globalOptions = {
   writeFinalResultToDatabase: false, /* TODO: implement */
 }
 
-
+require('firebase')
+//const firebase = firebaseSetup.development.get()
 const db = firebaseSetup.development.get().firestore()
 
 const testDb = (db, collectionName) => {
   return db.collection(collectionName)
 }
 
+const writeTermsToDb = async (db, terms) => {
+  const ref = db.collection('terms')
+  for ( const term of terms) {
+    const {id, ...data} = term
+    try {
+      await ref.doc(id).set(data)
+      console.log('success')
+    } catch (e) {
+      console.log(`firestore problem: ${e}`)
+    }
+  }
+  console.log('Done')
+  //process.exit(0)
+  //firebase.app().delete()
+  /*
+  terms.forEach((term, i) => {
+    const {id, ...data} = terms[i]
+    await ref.doc(id).set(data)
+  })
+  */
+}
+const main = async () => {
+  await writeTermsToDb(db, frontEndTerms)
+  console.log('more')
+  await writeTermsToDb(db, frontEndTerms)
+  console.log('even more')
+  await writeTermsToDb(db, frontEndTerms)
+  console.log('now done, exiting script')
+  process.exit(0)
+}
+//main()
+
+const getNetworkStubUri = (type) => path.resolve(__dirname, `test/stub/network-response/${type}-list.json`)
+const getNetworkStub = (type) => require(getNetworkStubUri(type))
+
+const logTerms = async () => {
+  const ref = db.collection('terms')
+  const allTerms = await ref.get();
+  console.log(allTerms)
+  if (allTerms.exists) {
+    allTerms.forEach(doc => console.log(doc.id, '=>', doc.data()))
+  } else {
+    console.log('no data found')
+  }
+}
+
+//logTerms()
+
 /*
-var citiesRef = db.collection("cities");
-
-citiesRef.doc("SF").set({
-  name: "San Francisco", state: "CA", country: "USA",
-  capital: false, population: 860000,
-  regions: ["west_coast", "norcal"] });
-citiesRef.doc("LA").set({
-  name: "Los Angeles", state: "CA", country: "USA",
-  capital: false, population: 3900000,
-  regions: ["west_coast", "socal"] });
-citiesRef.doc("DC").set({
-  name: "Washington, D.C.", state: null, country: "USA",
-  capital: true, population: 680000,
-  regions: ["east_coast"] });
-citiesRef.doc("TOK").set({
-  name: "Tokyo", state: null, country: "Japan",
-  capital: true, population: 9000000,
-  regions: ["kanto", "honshu"] });
-citiesRef.doc("BJ").set({
-  name: "Beijing", state: null, country: "China",
-  capital: true, population: 21500000,
-  regions: ["jingjinji", "hebei"] });
-*/
-
 // works good
-let testName = 'cities' //'films'
+let testName = 'terms' //'films'
 testDb(db, testName)
   .get()
   .then((snapshot) => {
@@ -111,7 +142,8 @@ testDb(db, testName)
       ...doc.data(),
     }));
     console.log(`All data in '${testName}' collection`, data); 
-  });
+  }).catch(e => console.log(e));
+*/
 
 
 try {
@@ -152,6 +184,7 @@ const BASE_URL = process.env.YOUTUBE_API_BASE_URL;
       })
  */
 const getSearchByTerm = (term = 'cats', config) => {
+  const API = 'search'
   const FUNC_NAME = 'getSearchByTerms():';
   const WARN_TERM_ENCODING_MSG = `${FUNC_NAME} Search terms cannot be URI encoded before they are sent
   --> Search terms have been decoded and will be encoded automatically when required.\nOffending terms were: `
@@ -166,7 +199,7 @@ const getSearchByTerm = (term = 'cats', config) => {
   }
   const params = {...defaultConfig, ...config }  // merge configs, if a config is passed in takes precedence
   console.log(`\n${DECOR.HR}`)
-  console.log(` Performing ${globalOptions.dryRun ? 'a dry run of' : ''} a youtube API search list request`);
+  console.log(` Performing ${globalOptions.dryRun ? 'a dry run of' : ''} a youtube API ${API} list request`);
   util.isUriEncoded(term) && ( term = decodeURI(terms), util.warn(WARN_TERM_ENCODING_MSG + encodeURI(term)) )
   console.log(` Sending query params: ${JSON.stringify(params, null, 2)}`)
   if (globalOptions.dryRun) {
@@ -174,7 +207,12 @@ const getSearchByTerm = (term = 'cats', config) => {
     console.log(` --> Search term: ${term}`)
     return Promise.resolve(`search list request: ${MSG.DRY_RUN_SUCCESS}`)
   }
-  return axios.get(BASE_URL + 'search', { params })
+  if (globalOptions.useNetworkStub) {
+    console.log(`--> globalOptions.useNetworkStub: true. Using a network stub file. The data in the response is FAKE!`)
+    console.log(`--> Path to fake data: ${getNetworkStubUri(API)}`)
+    return Promise.resolve(getNetworkStub(API))
+  }
+  return axios.get(BASE_URL + API, { maxContentLength: SIZE.ONE_MEGABYTE, params })
 }
 
 // Works good.TODO: jsdoc it, handle dry runs, skipping video requests and the edge case where there is no data in the search list response
@@ -189,8 +227,9 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
   try {
     for (let i = 0; i < terms.length; i++) {
       try {
-        result = await getSearchByTerm(terms[i], config)
-        result.data && (result.data.searchTerm = terms[i])
+        const term = terms[i].term
+        result = await getSearchByTerm(term, config)
+        result.data && (result.data.searchTerm = term)
         results.push(result)
         console.log(` ${FUNC_NAME} --> Success${
           globalOptions.dryRun
@@ -255,6 +294,8 @@ const getSearchesByTerms = async (terms = ['cats','dogs'], config) => {
 }
 // Works good. TODO: jsdoc, ensure axios data limit is more than 2000 bytes
 const getVideoListById = (id, config) => {
+  const API = 'videos'
+
   !id && util.throwFatal(ERR.ERROR_MISSING_VIDEO_ID)
   config && !config.hasOwnProperty('key') && throwFatal(ERR.ERROR_MISSING_VIDEO_ID_PARAM)
 
@@ -271,9 +312,14 @@ const getVideoListById = (id, config) => {
   if (globalOptions.dryRun) {
     return Promise.resolve('dry run')
   }
+  if (globalOptions.useNetworkStub) {
+    console.log(`--> globalOptions.useNetworkStub: true. Using a network stub file. The data in the response is FAKE!`)
+    console.log(`--> Path to fake data: ${getNetworkStubUri(API)}`)
+    return Promise.resolve(getNetworkStub(API))
+  }
   console.log( `  --> making a video list http request for videoId: ${id}`)
   //return axios.get(BASE_URL + 'videos', { maxContentLength: SIZE.ONE_MEGABYTE, params })
-  return axios.get(BASE_URL + 'videos', { params })
+  return axios.get(BASE_URL + API, { maxContentLength: SIZE.ONE_MEGABYTE, params })
 }
 
 /** NOTE: THIS FUNCTION WILL BE REPLACED BY seedSearches() function.
@@ -414,23 +460,33 @@ const seedSearches = async (terms, writeFileCb, config) => {
 
 // BEGIN: Testing the code
 //const testConfig = { isDryRun: false, skipVideoQuery: false, } // old way
-/*
-globalOptions.dryRun = true
+
+globalOptions.dryRun = false
 globalOptions.skipVideoRequests = false
-getSearchesByTerms(SEED.frontendSearchTerms)
-  .then((res) => {
-    
+globalOptions.useNetworkStub = true
+/*
+// Dump all requests into a single file - works good
+getSearchesByTerms(frontEndTerms)
+  .then((responses) => {
+    let merged = {responses: []}
+    for (const response of responses) {
+      merged.responses.push(response.data)
+    }
+    fsUtil.writeFile(path.join(dumpPath, util.timeStampFile('all-search-lists', '.json')), JSON.stringify(merged, null, 2))
+      .then(success => console.log(success))
+      .catch(e => console.log(e))
 
-  //  fsUtil.writeFile(path.join(dumpPath, 'getSearchesByTerms-output.json'), res)
-  //    .then(success => console.log(success))
-  //    .catch(e => console.log(e))
-
-    globalOptions.dryRun || console.log(` Final result (entire data object): ${JSON.stringify(res[0].data, null, 2)}`)
+    //globalOptions.dryRun || console.log(` Final result (entire data object): ${JSON.stringify(merged, null, 2)}`)
     console.log(`getSearchesByTerms() ${globalOptions.dryRun ? 'dry run' : ''} COMPLETED. Check the log for any non fatal errors`)
     console.log(DECOR.HR_FANCY)
   })
   .catch(e=>console.log(e))
-  */
+*/
+
+// testing for useNetworkStub - works
+//getSearchByTerm('HTML').then(res => console.log('Search Term data received.')).catch(e => console.log(e))
+getVideoListById('SVVRYuDcHqU').then(res => console.log(`Video data received: ${JSON.stringify(res.data, null, 2)}`)).catch(e => console.log(e))
+
 /*
 // works good
 dumpSearchesToFiles(SEED.frontendSearchTerms, testDry)

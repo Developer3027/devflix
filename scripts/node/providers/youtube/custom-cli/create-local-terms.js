@@ -6,25 +6,18 @@ const prompt = require('prompt')
 const { v4: uuidv4 } = require('uuid');
 
 const sharedLibRoot = path.resolve(__dirname, '../../../')
-const hexs = require(path.resolve(sharedLibRoot, 'local-constants.js')).colors.ansi256hexs
+
 const timeStampFile = require(path.resolve(sharedLibRoot, 'local-utils.js')).standard.timeStampFile
 const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile('terms', '.txt'))
 
 const isWriteFile = true
 
-const C = {
-  brightGreen: hexs[10],
-  brightRed: hexs[9],
-  brightCyan: hexs[14],
-  brightYellow: hexs[11],
-  mediumBlue: hexs[27],
-  darkCyan: hexs[6],
-  rulesColor: hexs[69]
-}
+const C = require('./colors.js').colors
 
 const VERSION = '0.2'
 const DECOR = '############################################'
 const MSG_WELCOME = c.hex(C.mediumBlue)(`${DECOR}\n### create-local-terms.js -- version ${VERSION} --\n${DECOR}`)
+const MSG_OPTIONS = c.hex(C.mediumCyan)('Press q and then <Enter> at any time quit.')
 const MSG_RULES = c.hex(C.rulesColor)(`RULES:
   1. Terms and their corresponding titles must be comma delimited lists.
   2. Term and title lists cannot contain a trailing comma.
@@ -61,8 +54,9 @@ const main = (terms, titles) => {
     : console.log(MSG_COMPLETE)
 }
 
-// Returns false if there are duplicate values in comma delimited string 
+// Returns false if there are duplicate values in comma delimited string, exits if the input is q (for quit)
 const promptValidator = (value) => {
+  value.toLowerCase() === 'q' && process.exit(0)
   array = value.split(',')
   return !((new Set(array)).size !== array.length)
 }
@@ -91,10 +85,12 @@ let writeFile
 let terms
 let titles
 console.log(MSG_WELCOME)
+console.log(MSG_OPTIONS)
 console.log(MSG_RULES)
 prompt.start({message: c.hex(C.brightGreen)('?')})
 prompt.get(promptSchema, function (err, result) {
   if (err) throw new Error(err)
+  result === 'q' && process.exit(0)
   terms = result.terms.split(',')
   titles = result.titles.split(',')
   return (terms.length != titles.length) 

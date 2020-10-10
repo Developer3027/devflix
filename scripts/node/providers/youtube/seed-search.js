@@ -317,8 +317,9 @@ const getVideoListById = (id, config) => {
     console.log(`--> Path to fake data: ${getNetworkStubUri(API)}`)
     return Promise.resolve(getNetworkStub(API))
   }
-  console.log( `  --> making a video list http request for videoId: ${id}`)
+  console.log( `  --> making a ${API.slice(0, -1)} list http request for videoId: ${id}`)
   //return axios.get(BASE_URL + 'videos', { maxContentLength: SIZE.ONE_MEGABYTE, params })
+  console.log(`request url: ${axios.getUri({url: BASE_URL + API, params})}`)
   return axios.get(BASE_URL + API, { maxContentLength: SIZE.ONE_MEGABYTE, params })
 }
 
@@ -463,7 +464,7 @@ const seedSearches = async (terms, writeFileCb, config) => {
 
 globalOptions.dryRun = false
 globalOptions.skipVideoRequests = false
-globalOptions.useNetworkStub = true
+//globalOptions.useNetworkStub = true
 /*
 // Dump all requests into a single file - works good
 getSearchesByTerms(frontEndTerms)
@@ -485,7 +486,7 @@ getSearchesByTerms(frontEndTerms)
 
 // testing for useNetworkStub - works
 //getSearchByTerm('HTML').then(res => console.log('Search Term data received.')).catch(e => console.log(e))
-getVideoListById('SVVRYuDcHqU').then(res => console.log(`Video data received: ${JSON.stringify(res.data, null, 2)}`)).catch(e => console.log(e))
+getVideoListById('DjSsd7SgIEM').then(res => console.log(`Video data received: ${JSON.stringify(res.data, null, 2)}`)).catch(e => console.log(e))
 
 /*
 // works good

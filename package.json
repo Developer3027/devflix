@@ -42,6 +42,7 @@
 	"devDependencies": {
 		"chalk": "^4.1.0",
 		"prompt": "^1.0.0",
-		"uuid": "^8.3.1"
+		"uuid": "^8.3.1",
+		"yargs": "^16.0.3"
 	}
 }

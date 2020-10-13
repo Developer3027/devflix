@@ -16,6 +16,13 @@ const dateStamp = () => {
 const timeStampFile = (prefix, fileExt) => `${prefix}_${timeStampForFile()}${fileExt ? fileExt : ''}`
 const dateStampFolder = (prefix) => `${prefix}_${dateStamp()}`
 
+const wordsToSnakeCase = (str) => str.split(' ')
+  .map((word, i) => (i > 0) 
+    ? word[0].toUpperCase() + word.slice(1, word.length) 
+    : word)
+  .join('')
+
+
 // END: standard helper methods
 
 // BEGIN: file system helper methods.
@@ -116,7 +123,8 @@ module.exports = {
     isUriComponentEncoded,
     escapeDoubleQuotes,
     timeStampFile,
-    dateStampFolder
+    dateStampFolder,
+    wordsToSnakeCase
   },
   fileSystem: {
     writeFile,

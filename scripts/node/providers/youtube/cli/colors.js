@@ -8,6 +8,7 @@ module.exports = {
     brightRed: ansi256hexs[9],
     brightCyan: ansi256hexs[14],
     brightYellow: ansi256hexs[11],
+    mediumGreen: ansi256hexs[28],
     mediumBlue: ansi256hexs[27],
     mediumCyan: ansi256hexs[45],
     darkCyan: ansi256hexs[6],

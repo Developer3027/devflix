@@ -6,8 +6,8 @@ const prompt = require('prompt')
 const { v4: uuidv4 } = require('uuid');
 
 const sharedLibRoot = path.resolve(__dirname, '../../../')
-
-const timeStampFile = require(path.resolve(sharedLibRoot, 'local-utils.js')).standard.timeStampFile
+const utilsUri = path.resolve(sharedLibRoot, 'local-utils.js')
+const timeStampFile = require(utilsUri).standard.timeStampFile
 const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile('terms', '.txt'))
 
 const isWriteFile = true
@@ -61,8 +61,8 @@ const main = (type, terms, titles) => {
 // Returns false if there are duplicate values in comma delimited string, exits if the input is q (for quit)
 const promptValidator = (value) => {
   value.toLowerCase() === 'q' && process.exit(0)
-  array = value.split(',')
-  return !((new Set(array)).size !== array.length)
+  let values = value.split(',')
+  return !((new Set(values)).size !== values.length)
 }
 
 const promptSchema = {
@@ -112,3 +112,4 @@ prompt.get(promptSchema, function (err, result) {
 });
 // END: main program
 
+ 

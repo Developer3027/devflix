@@ -60,7 +60,7 @@ envResult.error && (
 )
 
 // temp grab terms data
-const frontEndTerms = require(path.resolve(__dirname, 'data/local-seed.js')).frontendSearchTerms
+const frontEndTerms = require(path.resolve(__dirname, 'data/local-data.js')).frontendSearchTerms
 
 // simulates options being passed to the script, use and edit the values here below until a proper options systems is implemented
 const globalOptions = {

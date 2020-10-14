@@ -5,7 +5,6 @@ const path = require('path')
 const { promisify } = require('util');
 
 const c = require('chalk');
-const prompts = require('prompts');
 const prompt = require('prompt')
 const promptGetAsync = promisify(prompt.get); // workaround for https://github.com/flatiron/prompt/issues/204
 const { v4: uuidv4 } = require('uuid');
@@ -13,6 +12,8 @@ const { v4: uuidv4 } = require('uuid');
 const C = require('./lib/colors.js').colors
 const seedDb = require('./lib/terms.js').seed
 const appendDb = require('./lib/terms.js').append
+const validateTerms = require('./lib/terms.js').validateTerms
+const validateUniqueness = require('./lib/terms.js').validateUniqueness
 const exitGracefully = require('./lib/terms.js').exit
 
 const sharedLibRoot = path.resolve(__dirname, '../../../')
@@ -24,14 +25,14 @@ const timeStampFile = require(utilsUri).standard.timeStampFile
 // If false no file will be written
 const isWriteFile = false
 // (prop ignored if isWriteFile = false): if false json will be written to file, if true a javascript style object will be written to file
-const outputJsObject = false
+const outputJsObject = true
 /*
  If true terms objects will be either seeded or appended to the database. If false nothing is written to the database and
  the flags isSeedDb and isSeedDb will be ignored
 */
 const isWriteDb = true
 // If true (and isWriteDb = true) all terms data for the term type specified is overwritten in the database. If false terms will be appended. Duplicates will be ignored.
-const isSeedDb = false 
+const isSeedDb = true 
 // END: globaloptions (TODO: make these command line options)
 
 const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile( 'terms', (outputJsObject ? '.txt' : '.json') ))
@@ -176,9 +177,14 @@ const cliPartTwo = async() => {
 
 const main = async() => {
   const terms = await cliPartOne()
+
   if (!terms) process.exit(1)
+  if (!validateTerms(terms)) process.exit(1)
+  if (!validateUniqueness(terms)) process.exit(1)
   if (!isWriteDb) process.exit(0)
+  
   console.log(MSG_DB_BEGIN)
+
   if (isSeedDb) {
     let response = await cliPartTwo()
     const abort = (response === 'n' ? true : false)

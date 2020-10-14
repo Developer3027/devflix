@@ -71,7 +71,7 @@ const writeTerms = async (terms, options) => {
 
 /**
  * Appends the items array in a document of the terms collection in the 
- * Firestore with an array of terms objects. The document in the terms 
+ * Firestore with an array of term objects. The document in the terms 
  * collection that will be appended is the snakecase version of the value 
  * of the 'type' property of the first terms object in the array passed in.
  * This method can only be used to update terms, not to seed them.
@@ -80,8 +80,8 @@ const writeTerms = async (terms, options) => {
  * @return {Promise<string>} A promise with an error or succes string message
  *
  * @example
- *  // Writes a single term to the Firestore
- *  appendTerms([termsObj])
+ *  // Writes two term objects to the Firestore
+ *  appendTerms([termsObj1, termsObj2])
       .then(res => console.log(res))
       .catch(e => console.log(e))
  */
@@ -95,6 +95,7 @@ const appendTerms = async (terms) => {
   )
 
   const doc = db.collection(collectionName).doc(docName)
+
   try {
     await doc.update({ items: arrayUnion(...terms) })
   } catch (e) {
@@ -102,7 +103,7 @@ const appendTerms = async (terms) => {
   }
 
   return Promise.resolve(
-    c.hex(C.brightGreen)(`Terms object(s) successfully appended in the '${
+    c.hex(C.brightGreen)(`Terms object(s) successfully appended ${terms.length} terms in the '${
       collectionName} collection for the '${
       docName}' document. NOTE: Duplicates were ignored.`)
   )
@@ -118,9 +119,10 @@ const validateTerm = (term, debug = false, logger = termValidationLogger) => {
     term: 'string',
     title: 'string'
   }
-  const keyTotal = Object.keys(valid).length
 
+  const keyTotal = Object.keys(valid).length
   let t, keyCnt = 0;
+
   for (const [key, value] of Object.entries(term)) {
     if (!(key in valid)) {
       debug && (
@@ -153,7 +155,7 @@ const validateTerm = (term, debug = false, logger = termValidationLogger) => {
   if (keyCnt !== keyTotal) {
     debug && (
       logger(`Term had an incorrect number of keys. Got ${keyCnt}. Expected exactly ${keyTotal}`),
-      logger(`A term requires the following keys:\n ${Object.keys(valid).join('\n ')}`),
+      logger(`NOTE: A term requires the following keys:\n ${Object.keys(valid).join('\n ')}`),
       logOffending(term)
     )
     return false
@@ -162,49 +164,93 @@ const validateTerm = (term, debug = false, logger = termValidationLogger) => {
   return true
 }
 
-const validateTerms = (terms, debug = false) => {
+const validateTerms = (terms, debug = false, logger = termValidationLogger) => {
+  const TYPE = ( ('type' in terms[0]) ? terms[0].type : false)
+  const ERR_NO_TYPE = 'Term(s) invalid at index 0, no type property.'
+  const mismatchMsg = (i) => {
+    return `Term type value mismatch at index ${i}. All type properties must have the same value of '${TYPE}'`
+  }
+  const logOffending = (term) => logger(`Offending term:\n${JSON.stringify(term, null, 2)}`)
 
-  return validateTerm(terms, debug)
+  let isValid, isSameType
+  
+  if (!TYPE) {
+    logger(ERR_NO_TYPE)
+    logOffending(terms[0])
+    return false
+  }
+
+  for (const [i, term] of terms.entries()) {
+    if (('type' in term) && term.type != TYPE) {
+      debug && (
+        logger(mismatchMsg(i)),
+        logOffending(term)
+      )
+      isValid = false
+      break;
+    }
+    isValid = validateTerm(term, debug)
+  }
+
+  return isValid
 }
 
-/*
-const listenTerms = async (name, terms) => {
-  const doc = db.collection(name).doc('frontEnd')
-  const observer = doc.onSnapshot({includeMetadataChanges: true}, s => {
-    console.log(`s.metadata: ${JSON.stringify(s.metadata)}`)
-    //snaps.push(JSON.stringify(s.get('items'), null, 2))
-    //snaps.push
-    console.log(`Received doc snapshot: ${snaps}`);
-    // ...
-  }, err => {
-    console.log(`Encountered error: ${err}`);
-  });
+let t = [
+  {
+    id: "d67780f7-2265-4d58-9904-5396376b5a2b",
+    type: 'front end',
+    term: "go1",
+    title: 'yeah4'
+  },
+  {
+    id: "e67780f7-2265-4d58-9904-5396376b5a2b",
+    type: "front end",
+    term: "go2",
+    title: 'yeah5'
+  },
+  {
+    id: "f67780f7-2265-4d58-9904-5396376b5a2b",
+    type: 'front end',
+    term: "go3",
+    title: 'yeah5'
+  }
+]
+
+const validateUniqueness = (terms, logger = termValidationLogger) => {
+  const getSet = (key) => new Set(terms.map(v => v[key]))
+  const rules = ['id','term','title']
+  const sets = rules.map(key => getSet(key))
+  for (const [i, set] of sets.entries()) {
+    if (set.size < terms.length) {
+      logger('ERROR: A term object in the array had a non-unique value.\n' +
+        'Every value in a term object execept the type property must be unique.\n' +
+        `The problematic term object property was: ${rules[i]}`)
+      return false
+    }
+  }
+  return true
 }
-*/
-/*
-const go5 = async () => {
-  console.log('Starting live test of seeding and updating terms...')
-  await writeTerms(terms.slice(0,2))
-    .then(res => console.log(res))
-    .catch(e => console.log(e))
-  await appendTerms(terms.slice(3,6))
-    .then(res => console.log(res))
-    .catch(e => console.log(e))
-  console.log('Live test of seeding and updating terms COMPLETE.')
-  exit()
+
+// NOTE: incurs 1 Firestore read charge
+const existsInDb = async(terms, logger = termValidationLogger) => {
+  // assume the document exists, grab the document, compare data against terms argument.
+  const docName = ('type' in terms[0]) ? snakeCase(terms[0].type) : 'internalError'
+  const docSnapshot = await db.collection('terms').doc(docName).get()
+  if (!docSnapshot.exists) {
+    return false
+  }
+  const dbTerms = docSnapshot.data().items
+  // loop through dbTerms and check from duplicate values against terms array argument
 }
-//go5()
-let t = {
-  id: "d67780f7-2265-4d58-9904-5396376b5a2b",
-  type: "front end",
-  term: "go",
-  title: 'yeah'
-}
-console.log(validateTerms(t, true))
-*/
+
+existsInDb(t)
+
+//console.log(validateUniqueness(t))
 
 module.exports = {
   seed: writeTerms,
   append: appendTerms,
+  validateTerms,
+  validateUniqueness,
   exit,
 }

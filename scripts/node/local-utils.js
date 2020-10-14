@@ -114,6 +114,10 @@ function createDirIfNeeded(path, mask, cb) {
   });
 }
 // END: file system helper methods
+// BEGIN: Regexp
+// From: https://stackoverflow.com/questions/7905929/how-to-test-valid-uuid-guid
+const validUUID = new RegExp(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/, 'i')
+// END: Regexp
 
 module.exports = {
   standard: {
@@ -129,5 +133,8 @@ module.exports = {
   fileSystem: {
     writeFile,
     createDirIfNeeded,
+  },
+  regexp: {
+    validUUID
   }
 }

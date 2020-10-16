@@ -1,5 +1,12 @@
-const path = require('path')
+/***
+ * @fileoverview Library for working with <code>terms</code>data
+ * @author <a href="maito:apolo4pena@gmail.com">Apolo Pena</a>
+ * @description Validation and Firestore database hlpers for seeding and appending data.
+ * @see <code>terms-cli.js</code>
+ * @license MIT
+ */
 
+const path = require('path')
 
 const c = require('chalk');
 const prompt = require('prompt');
@@ -195,7 +202,7 @@ const validateTerms = (terms, debug = false, logger = termValidationLogger) => {
   return isValid
 }
 
-let t = [
+let localTerms = [
   {
     id: "d67780f7-2265-4d58-9904-5396376b5a2b",
     type: 'front end',
@@ -212,10 +219,53 @@ let t = [
     id: "f67780f7-2265-4d58-9904-5396376b5a2b",
     type: 'front end',
     term: "go3",
-    title: 'yeah5'
+    title: 'yeah6'
+  },
+  {
+    id: "31714771-8020-41d8-8a6a-7ffe4b01f357",
+    type: "front end",
+    term: "more tests",
+    title: "more tests title"
+  }
+]
+let dbTerms = [
+  {
+    id: "g67780f7-2265-4d58-9904-5396376b5a2b",
+    type: 'front end',
+    term: "go11",
+    title: 'yeah44'
+  },
+  {
+    id: "h67780f7-2265-4d58-9904-5396376b5a2b",
+    type: "front end",
+    term: "go22",
+    title: 'yeah55'
+  },
+  {
+    id: "i67780f7-2265-4d58-9904-5396376b5a2b",
+    type: 'front end',
+    term: "go33",
+    title: 'yeah66'
   }
 ]
 
+/**
+ * Validates an array of term object in regard to certain properties
+ * that must have unique values, see below.
+ *
+ * @param {array} terms - An array of terms objects
+ * @param {function} [logger = termValidationLogger] - Function to use for debugging output 
+ * @return {boolean} True if <code>id</code>, <code>term</code> and <code>title</code>
+ * values are unique. False if otherwise.
+ *
+ * @example
+ *  let terms = [
+ *    {id:1,type:'front end',term:'foo',title:'bar'},
+ *    {id:2,type:'front end',term:'foobar',title:'bar'}
+ *  ]
+ *  // Outputs false, since the second term object also has a title of 'bar'
+ *  console.log(validateUniqueness(terms))
+ */
 const validateUniqueness = (terms, logger = termValidationLogger) => {
   const getSet = (key) => new Set(terms.map(v => v[key]))
   const rules = ['id','term','title']
@@ -223,7 +273,7 @@ const validateUniqueness = (terms, logger = termValidationLogger) => {
   for (const [i, set] of sets.entries()) {
     if (set.size < terms.length) {
       logger('ERROR: A term object in the array had a non-unique value.\n' +
-        'Every value in a term object execept the type property must be unique.\n' +
+        'Every value in a term object except the type property must be unique.\n' +
         `The problematic term object property was: ${rules[i]}`)
       return false
     }
@@ -231,19 +281,65 @@ const validateUniqueness = (terms, logger = termValidationLogger) => {
   return true
 }
 
-// NOTE: incurs 1 Firestore read charge
-const existsInDb = async(terms, logger = termValidationLogger) => {
-  // assume the document exists, grab the document, compare data against terms argument.
+// NOTE: incurs 1 Firestore read charge when live, live db part is disabled for now
+const existsInDb = async(terms, dbTermsTEMP) => {
   const docName = ('type' in terms[0]) ? snakeCase(terms[0].type) : 'internalError'
+  /*
   const docSnapshot = await db.collection('terms').doc(docName).get()
-  if (!docSnapshot.exists) {
-    return false
-  }
+  if (!docSnapshot.exists) return false
   const dbTerms = docSnapshot.data().items
-  // loop through dbTerms and check from duplicate values against terms array argument
+  */
+  let dbTerms = dbTermsTEMP
+  let culprits = []
+  for (const [i, localTerm] of terms.entries()) {
+    for (const dbTerm of dbTerms) {
+      if (localTerm['term'] === dbTerm['term']) {
+        culprits.push({
+          dbId: dbTerm.id,
+          index: i,
+          term: dbTerm.term, 
+          title: null
+        })
+      }
+      else if (localTerm['title'] === dbTerm['title']) {
+        culprits.push({
+          dbId: dbTerm.id,
+          index: i,
+          term: null, 
+          title: dbTerm.title
+        })
+      }
+    }
+  }
+  return (culprits.length > 0) ? culprits : Promise.resolve(false)
 }
 
-existsInDb(t)
+// test existsInDb()
+try {
+  ;(async()=>{
+    const alreadyExistsInDb = await existsInDb(localTerms, dbTerms)
+    if (alreadyExistsInDb) {
+      console.log(`ERROR: Terms data you were trying to append the database already existed ` +
+        `in the database.\nOnly the 'type' property can be non unique.`)
+      console.log( 'Report:')
+      alreadyExistsInDb.forEach(culprit => {
+        console.log(`problematic local term object:\n${JSON.stringify(localTerms[culprit.index], null, 2)}`, '')
+        culprit.term && (
+          console.log(`'term' property value already exists in the database: ${culprit.term}`),
+          console.log(`id in the database for that terms object is: ${culprit.dbId}`)
+        )
+        culprit.title && (
+          console.log(`'title' property value already exists in the database: ${culprit.title}`),
+          console.log(`id in the database for that terms object is: ${culprit.dbId}`)
+        )
+      })
+    } else {
+      console.log(`Appending ${localTerms.length} Terms object to the database`)
+    }
+  })()
+} catch (e) {
+  console.log(e)
+}
 
 //console.log(validateUniqueness(t))
 

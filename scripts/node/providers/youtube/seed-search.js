@@ -5,6 +5,7 @@
  *  Also this script can generate .json files instead of seeding a firestore. 
  *  a local.env file is required to be in the root of the scripts folder.
  * @see template.env for variable names to put in required local.env file.
+ * @license MIT
  */
 
 const axios = require('axios').default;

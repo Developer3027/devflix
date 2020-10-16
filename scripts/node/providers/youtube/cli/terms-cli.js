@@ -1,3 +1,11 @@
+/***
+ * @fileoverview Command line tool for working with <code>terms</code>.
+ * @author <a href="maito:apolo4pena@gmail.com">Apolo Pena</a>
+ * @description Create or batch create terme objects and or write them to a Firestore
+ * Run the program without options to get usage information.
+ * @license MIT
+ */
+
 let writeFile
 
 const fs = require('fs')
@@ -30,13 +38,13 @@ const outputJsObject = true
  If true terms objects will be either seeded or appended to the database. If false nothing is written to the database and
  the flags isSeedDb and isSeedDb will be ignored
 */
-const isWriteDb = true
+const isWriteDb = false
 // If true (and isWriteDb = true) all terms data for the term type specified is overwritten in the database. If false terms will be appended. Duplicates will be ignored.
 const isSeedDb = true 
 // END: globaloptions (TODO: make these command line options)
 
 const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile( 'terms', (outputJsObject ? '.txt' : '.json') ))
-const VERSION = '0.2'
+const VERSION = '0.2.1'
 const DECOR = '############################################'
 
 const MSG_WELCOME = c.hex(C.mediumBlue)(`${DECOR}\n### create-local-terms.js -- version ${VERSION} --\n${DECOR}`)

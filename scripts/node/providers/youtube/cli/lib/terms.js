@@ -314,6 +314,7 @@ const existsInDb = async(terms, dbTermsTEMP) => {
   return (culprits.length > 0) ? culprits : Promise.resolve(false)
 }
 
+/*
 // test existsInDb()
 try {
   ;(async()=>{
@@ -340,6 +341,7 @@ try {
 } catch (e) {
   console.log(e)
 }
+*/
 
 //console.log(validateUniqueness(t))
 

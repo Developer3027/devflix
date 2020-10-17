@@ -6,8 +6,6 @@
  * @license MIT
  */
 
-let writeFile
-
 const fs = require('fs')
 const path = require('path')
 const { promisify } = require('util');
@@ -27,13 +25,13 @@ const exitGracefully = require('./lib/terms.js').exit
 const sharedLibRoot = path.resolve(__dirname, '../../../')
 const utilsUri = path.resolve(sharedLibRoot, 'local-utils.js')
 const timeStampFile = require(utilsUri).standard.timeStampFile
-
+const writeFile = require(utilsUri).fileSystem.writeFile
 
 // BEGIN: global options (TODO: make these command line options)
 // If false no file will be written
-const isWriteFile = false
+const isWriteFile = true
 // (prop ignored if isWriteFile = false): if false json will be written to file, if true a javascript style object will be written to file
-const outputJsObject = true
+const outputJsObject = false
 /*
  If true terms objects will be either seeded or appended to the database. If false nothing is written to the database and
  the flags isSeedDb and isSeedDb will be ignored
@@ -44,6 +42,9 @@ const isSeedDb = true
 // END: globaloptions (TODO: make these command line options)
 
 const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile( 'terms', (outputJsObject ? '.txt' : '.json') ))
+const writer = isWriteFile
+  ? fs.createWriteStream(outputFileUri, {flags: 'a'})
+  : false
 const VERSION = '0.2.1'
 const DECOR = '############################################'
 
@@ -58,12 +59,10 @@ const MSG_TERMS_BEGIN = c.hex(C.brightGreen)(`\n--> Creating terms(s) objects(s)
 const MSG_TERMS_COMPLETE = c.hex(C.brightGreen)(`\nCreating terms(s) objects(s) as ${
   outputJsObject ? '<-- JavaScript' : 'JSON'}: COMPLETE <--\n`)
 const MSG_DB_BEGIN = c.hex(C.brightGreen)(`\n--> Attempting to ${isSeedDb ? 'seed' : 'append'} term(s) to the Firestore -->\n`)
-const MSG_DB_SUCCESS = c.hex(C.brightGreen)(`\n<-- Successfully ${isSeedDb ? 'seeded' : 'appended'} term(s) to the Firestore <--\n`)
 
 const log = (...args) => {
   const msg = args.join(' ')
-  // writeFile is set from the buildTerms method
-  if (writeFile) writeFile.write(`${msg}\n`); 
+  if (writer) writer.write(`${msg}\n`)
   console.log( c.hex(C.brightCyan)(msg) )
 }
 
@@ -76,32 +75,26 @@ const lengthsMismatchMsg = (terms, titles) => {
 
 const buildTerms = (type, terms, titles) => {
   console.log(MSG_TERMS_BEGIN)
-
-  writeFile = isWriteFile
-    ? fs.createWriteStream(`${outputFileUri}`, { flags: 'w'})
-    : false
-
-  let results = []
+  let results = [], jsOutput = ''
   terms.forEach(
     (term, i, a) => {
       const id = uuidv4()
       const title = titles[i]
       const termObj = { id, type, term, title }
       if (outputJsObject) {
-        log(`{\n  id: "${
+        jsOutput += `{\n  id: "${
           id}",\n  type: "${
           type}",\n  term: "${
           term}",\n  title: "${
-          title}"\n}${i != a.length - 1 ? ',' : ''}`
-        )
-      }/* else {
-        log(JSON.stringify(termObj, null, 2))
-      }*/
+          title}"\n}${i != a.length - 1 ? ',\n' : ''}`
+      }
       results.push(termObj)
     }
   )
 
-  if (!outputJsObject) {
+  if (outputJsObject) {
+    log(jsOutput)
+  } else {
     const resultsObj = {
       terms: results
     }
@@ -169,7 +162,7 @@ const cliPartOne = async() => {
   const { _type, _terms, _titles } = await promptGetAsync(promptSchema);
   const terms = _terms.split(',')
   const titles = _titles.split(',')
-  const type = (_type === '1') ? 'front end' : 'back end'
+  const type = (_type === '1') ? 'front end' : 'back end';
 
   let results;
   return (terms.length != titles.length) 

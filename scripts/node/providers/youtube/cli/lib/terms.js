@@ -129,7 +129,6 @@ const validateTerm = (term, debug = false, logger = termValidationLogger) => {
 
   const keyTotal = Object.keys(valid).length
   let t, keyCnt = 0;
-
   for (const [key, value] of Object.entries(term)) {
     if (!(key in valid)) {
       debug && (
@@ -281,16 +280,18 @@ const validateUniqueness = (terms, logger = termValidationLogger) => {
   return true
 }
 
-// NOTE: incurs 1 Firestore read charge when live, live db part is disabled for now
-const existsInDb = async(terms, dbTermsTEMP) => {
-  const docName = ('type' in terms[0]) ? snakeCase(terms[0].type) : 'internalError'
-  /*
-  const docSnapshot = await db.collection('terms').doc(docName).get()
-  if (!docSnapshot.exists) return false
-  const dbTerms = docSnapshot.data().items
-  */
-  let dbTerms = dbTermsTEMP
-  let culprits = []
+// NOTE: incurs 1 Firestore read charge when the testTerms argument is not passed in
+const existsInDb = async(terms, testTerms = null) => {
+  let dbTerms, culprits = []
+  if (testTerms) {
+    dbTerms = testTerms
+  } else {
+    const docName = ('type' in terms[0]) ? snakeCase(terms[0].type) : 'internalError'
+    const docSnapshot = await db.collection('terms').doc(docName).get()
+    if (!docSnapshot.exists) return false
+    dbTerms = docSnapshot.data().items
+  }
+
   for (const [i, localTerm] of terms.entries()) {
     for (const dbTerm of dbTerms) {
       if (localTerm['term'] === dbTerm['term']) {
@@ -300,8 +301,7 @@ const existsInDb = async(terms, dbTermsTEMP) => {
           term: dbTerm.term, 
           title: null
         })
-      }
-      else if (localTerm['title'] === dbTerm['title']) {
+      } else if (localTerm['title'] === dbTerm['title']) {
         culprits.push({
           dbId: dbTerm.id,
           index: i,
@@ -311,9 +311,47 @@ const existsInDb = async(terms, dbTermsTEMP) => {
       }
     }
   }
+
   return (culprits.length > 0) ? culprits : Promise.resolve(false)
 }
 
+// NOTE: incurs 1 Firestore read charge when the testTerms argument is not passed in
+const existsInDbVerbose = async(localTerms, testTerms) => {
+  const logger = (termValidationLogger ? termValidationLogger : console.log())
+  try {
+    let alreadyExistsInDb
+
+    if (testTerms) { 
+      alreadyExistsInDb = await existsInDb(localTerms, testTerms)
+    } else {
+      alreadyExistsInDb = await existsInDb(localTerms)
+    }
+
+    if (alreadyExistsInDb) {
+      logger(`\nERROR: Terms data you were trying to append the database already existed ` +
+        `in the database.\nOnly the 'type' property can be non unique.`)
+        logger( 'Report:')
+      alreadyExistsInDb.forEach(culprit => {
+        logger(`problematic local term object:\n${JSON.stringify(localTerms[culprit.index], null, 2)}`, '')
+        culprit.term && (
+          logger(`'term' property value already exists in the database: ${culprit.term}`),
+          logger(`id in the database for that terms object is: ${culprit.dbId}`)
+        )
+        culprit.title && (
+          logger(`'title' property value already exists in the database: ${culprit.title}`),
+          logger(`id in the database for that terms object is: ${culprit.dbId}\n`)
+        )
+      })
+    } else {
+      console.log(c.hex(C.brightGreen)(`\nNo duplicate data was found between local the term data objects and the terms data
+in the database. Data is safe to append to the database.`))
+    }
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+existsInDbVerbose(localTerms, dbTerms)
 /*
 // test existsInDb()
 try {

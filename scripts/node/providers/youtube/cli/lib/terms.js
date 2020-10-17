@@ -351,7 +351,8 @@ in the database. Data is safe to append to the database.`))
   }
 }
 
-existsInDbVerbose(localTerms, dbTerms)
+//existsInDbVerbose(localTerms, dbTerms)
+
 /*
 // test existsInDb()
 try {

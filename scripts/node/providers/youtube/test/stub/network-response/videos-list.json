@@ -1,0 +1,64 @@
+{
+  "data": {
+    "kind": "youtube#videoListResponse",
+    "etag": "hg11DVqYhifgfgH9RmBediNIZik",
+    "items": [
+      {
+        "kind": "youtube#video",
+        "etag": "84nr7h521hoG5F7KxLpLgd4xm1o",
+        "id": "SVVRYuDcHqU",
+        "snippet": {
+          "publishedAt": "2020-04-30T22:31:35Z",
+          "channelId": "UCt7T2EvYBqvlxNU3fbE4Y7g",
+          "title": "Course Outline - Complete React Developer in 2020 (w/ Redux, Hooks, GraphQL): Zero to Mastery",
+          "description": "Andrei walks you through everything you'll learn in this course to get you hired as a Senior React Developer at the company of your dreams. Graduates are working are top tech companies like Google, Amazon, Apple, IBM, Tesla, and Facebook.\n\nYou can watch over 1 hour of free lectures from this course here: https://links.zerotomastery.io/react_academy\n\nWe guarantee that this is the most comprehensive online resource on React. This project-based course will introduce you to all of the modern tool chain of a React Developer in 2020. You will build a massive e-commerce application similar to Shopify using React, Redux, React Hooks, React Router, GraphQL, Context API, Firebase, Redux-Saga, Stripe and more. This is going to be a full stack app (MERN stack) using Firebase.\n\nGET 10% OFF (CODE = YOUTUBE) → https://zerotomastery.io/academy\nFREE RESOURCES FOR DEVELOPERS → https://zerotomastery.io/resources\nMOST POPULAR BLOG POSTS → https://zerotomastery.io/blog/?tag=MustRead\n\n#learntocode #webdevelopment #react #graphql #javascript #redux #pwa #firebase\n\nWhy join the Zero To Mastery Academy?\nLearning to code and becoming a developer provides endless opportunities to live the life you want. Whether that’s a high paying job with a world-class tech company, working remotely or building your own apps, the ZTM Academy will equip you with the skills, knowledge and network to achieve your dreams.\n\nOur courses walk you through the entire journey of starting to learn to code to getting hired to having a successful career as a top 10% developer. Along the way, you’ll not only be supported by our expert instructors Andrei, Daniel, Yihua and our course TAs but also 1,000s of other students from around the world in our private online Zero To Mastery community.",
+          "thumbnails": {
+            "default": {
+              "url": "https://i.ytimg.com/vi/SVVRYuDcHqU/default.jpg",
+              "width": 120,
+              "height": 90
+            },
+            "medium": {
+              "url": "https://i.ytimg.com/vi/SVVRYuDcHqU/mqdefault.jpg",
+              "width": 320,
+              "height": 180
+            },
+            "high": {
+              "url": "https://i.ytimg.com/vi/SVVRYuDcHqU/hqdefault.jpg",
+              "width": 480,
+              "height": 360
+            },
+            "standard": {
+              "url": "https://i.ytimg.com/vi/SVVRYuDcHqU/sddefault.jpg",
+              "width": 640,
+              "height": 480
+            },
+            "maxres": {
+              "url": "https://i.ytimg.com/vi/SVVRYuDcHqU/maxresdefault.jpg",
+              "width": 1280,
+              "height": 720
+            }
+          },
+          "channelTitle": "Zero To Mastery - By: Andrei Neagoie",
+          "tags": [
+            "react",
+            "learntocode",
+            "react developer",
+            "learn react"
+          ],
+          "categoryId": "27",
+          "liveBroadcastContent": "none",
+          "localized": {
+            "title": "Course Outline - Complete React Developer in 2020 (w/ Redux, Hooks, GraphQL): Zero to Mastery",
+            "description": "Andrei walks you through everything you'll learn in this course to get you hired as a Senior React Developer at the company of your dreams. Graduates are working are top tech companies like Google, Amazon, Apple, IBM, Tesla, and Facebook.\n\nYou can watch over 1 hour of free lectures from this course here: https://links.zerotomastery.io/react_academy\n\nWe guarantee that this is the most comprehensive online resource on React. This project-based course will introduce you to all of the modern tool chain of a React Developer in 2020. You will build a massive e-commerce application similar to Shopify using React, Redux, React Hooks, React Router, GraphQL, Context API, Firebase, Redux-Saga, Stripe and more. This is going to be a full stack app (MERN stack) using Firebase.\n\nGET 10% OFF (CODE = YOUTUBE) → https://zerotomastery.io/academy\nFREE RESOURCES FOR DEVELOPERS → https://zerotomastery.io/resources\nMOST POPULAR BLOG POSTS → https://zerotomastery.io/blog/?tag=MustRead\n\n#learntocode #webdevelopment #react #graphql #javascript #redux #pwa #firebase\n\nWhy join the Zero To Mastery Academy?\nLearning to code and becoming a developer provides endless opportunities to live the life you want. Whether that’s a high paying job with a world-class tech company, working remotely or building your own apps, the ZTM Academy will equip you with the skills, knowledge and network to achieve your dreams.\n\nOur courses walk you through the entire journey of starting to learn to code to getting hired to having a successful career as a top 10% developer. Along the way, you’ll not only be supported by our expert instructors Andrei, Daniel, Yihua and our course TAs but also 1,000s of other students from around the world in our private online Zero To Mastery community."
+          },
+          "defaultAudioLanguage": "en-US"
+        }
+      }
+    ],
+    "pageInfo": {
+      "totalResults": 1,
+      "resultsPerPage": 1
+    }
+  }
+}

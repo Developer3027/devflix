@@ -15,12 +15,29 @@ const dateStamp = () => {
 }
 const timeStampFile = (prefix, fileExt) => `${prefix}_${timeStampForFile()}${fileExt ? fileExt : ''}`
 const dateStampFolder = (prefix) => `${prefix}_${dateStamp()}`
-
-const wordsToSnakeCase = (str) => str.split(' ')
+const wordsToCamelCase = (str) => str.split(' ')
   .map((word, i) => (i > 0) 
     ? word[0].toUpperCase() + word.slice(1, word.length) 
     : word)
   .join('')
+
+/**
+ * Removes multiple elements from an array in linear time.
+ *
+ * @param {array} values - The array that needs multiple elements removed.
+ * @param {array} indices - An array (in ascending order) of indices to remove in the values array.
+ * @return {array} An array with them desired elements removed.
+ *
+ * @example
+ *  // Remove the elements that contain strings
+ *  let values = [13,'a',4.5,'b',true,'c',5,5]
+ *  let indices = [1,3,5]
+ *  console.log(removeByIndices(values, indices)) // outputs [13,4.5,true,5,5]
+ */
+  const removeMultiple = (values, indices) => {
+    const indexSet = new Set(indices)
+    return values.filter((value, i) => !indexSet.has(i))
+  }
 
 
 // END: standard helper methods
@@ -128,7 +145,8 @@ module.exports = {
     escapeDoubleQuotes,
     timeStampFile,
     dateStampFolder,
-    wordsToSnakeCase
+    wordsToCamelCase,
+    removeMultiple
   },
   fileSystem: {
     writeFile,

@@ -7,7 +7,35 @@ import * as ROUTES from '../constants/routes'
 import logo from '../logo.png'
 import { FooterContainer } from '../containers/footer'
 
+import Thumb from '../components/thumb/Thumb'
+
 export function BrowseContainer ({ slides }) {
+  const videoIds = [
+    '1WW2hn5-Lds',
+    'DjSsd7SgIEM',
+    'lsGP_5K2nEE',
+    'yg9ZrK5IwZA',
+    'H6PtEdEBmW8',
+    '4TEkkTK57cM',
+    'ihhPyqfdbjo',
+    'JOAns8oJS0Y',
+    'iZhV0bILFb0',
+    'ZB8I2PmiOw',
+    'SVVRYuDcHqU',
+    'J7oX6TRZS8o',
+    'rr9ZNxNmhdc',
+    'lsGP_5K2nEE',
+    'yg9ZrK5IwZA',
+    'H6PtEdEBmW8',
+    '4TEkkTK57cM',
+    'ihhPyqfdbjo',
+    'JOAns8oJS0Y',
+    'iZhV0bILFb0',
+    'ZB8I2PmiOw',
+    'SVVRYuDcHqU',
+    'J7oX6TRZS8o',
+    'rr9ZNxNmhdc'
+  ]
   const [category, setCategory] = useState('series')
   const [searchTerm, setSearchTerm] = useState('')
   const [profile, setProfile] = useState({})
@@ -91,6 +119,7 @@ export function BrowseContainer ({ slides }) {
             continue to learn new things on your journey of web development.
           </Header.TextSmall>
           <Header.PlayButton>Play</Header.PlayButton>
+          <Thumb videoId='lsGP_5K2nEE' />
         </Header.Feature>
       </Header>
 
@@ -100,10 +129,10 @@ export function BrowseContainer ({ slides }) {
             <Card.Title>{slideItem.title}</Card.Title>
             <Card.Entities>
               {' '}
-              {slideItem.data.map(item => (
+              {slideItem.data.map((item, i) => (
                 <Card.Item key={item.docId} item={item}>
                   <Card.Image
-                    src={`/images/${category}/${item.genre}/${item.slug}/small.jpg`}
+                    src={`https://i.ytimg.com/vi/${videoIds[i]}/default.jpg`}
                   />
                   <Card.Meta>
                     <Card.SubTitle>{item.title}</Card.SubTitle>

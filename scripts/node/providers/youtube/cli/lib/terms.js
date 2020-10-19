@@ -15,8 +15,7 @@ const C = require('./colors.js').colors
 const sharedLibRoot = path.resolve(__dirname, '../../../../')
 const utilsUri = path.resolve(sharedLibRoot, 'local-utils.js')
 
-const timeStampFile = require(utilsUri).standard.timeStampFile
-const snakeCase = require(utilsUri).standard.wordsToSnakeCase
+const camelCase = require(utilsUri).standard.wordsToCamelCase
 const uuidRegex = require(utilsUri).regexp.validUUID
 
 // BEGIN: shared firebase, firestore
@@ -26,7 +25,6 @@ const arrayUnion = firestoreLib.shortcuts.arrayUnion
 const collectionExists = firestoreLib.helpers.collectionExists
 const exit = firestoreLib.helpers.exit // exits gracefully, releases all firebase resources
 
-const firebaseApp = firestoreLib.firebaseApp
 const db =  firestoreLib.firestoreDb
 // END: shared firebase, firestore
 
@@ -48,7 +46,7 @@ const writeTerms = async (terms, options) => {
   let force;
   options && (force = options.force)
   const collectionName = 'terms'
-  const docName = ('type' in terms[0]) ? snakeCase(terms[0].type) : 'internalError'
+  const docName = ('type' in terms[0]) ? camelCase(terms[0].type) : 'internalError'
   console.log(c.hex((force ? C.mediumOrange : C.mediumGreen))(`Attempting to ${force ? 'force seed' : 'seed'} term object(s) in the '${
     collectionName}' collection for the '${docName}' document...`)
   )
@@ -79,7 +77,7 @@ const writeTerms = async (terms, options) => {
 /**
  * Appends the items array in a document of the terms collection in the 
  * Firestore with an array of term objects. The document in the terms 
- * collection that will be appended is the snakecase version of the value 
+ * collection that will be appended is the camel-case version of the value 
  * of the 'type' property of the first terms object in the array passed in.
  * This method can only be used to update terms, not to seed them.
  *
@@ -94,7 +92,7 @@ const writeTerms = async (terms, options) => {
  */
 const appendTerms = async (terms) => {
   const collectionName = 'terms'
-  const docName = ('type' in terms[0]) ? snakeCase(terms[0].type) : 'internalError'
+  const docName = ('type' in terms[0]) ? camelCase(terms[0].type) : 'internalError'
 
   console.log(c.hex(C.mediumGreen)(`Attempting to append terms object(s) in the '${
     collectionName}' collection for the '${
@@ -112,7 +110,7 @@ const appendTerms = async (terms) => {
   return Promise.resolve(
     c.hex(C.brightGreen)(`Terms object(s) successfully appended ${terms.length} terms in the '${
       collectionName} collection for the '${
-      docName}' document. NOTE: Duplicates were ignored.`)
+      docName}' document.`)
   )
 }
 
@@ -286,7 +284,7 @@ const existsInDb = async(terms, testTerms = null) => {
   if (testTerms) {
     dbTerms = testTerms
   } else {
-    const docName = ('type' in terms[0]) ? snakeCase(terms[0].type) : 'internalError'
+    const docName = ('type' in terms[0]) ? camelCase(terms[0].type) : 'internalError'
     const docSnapshot = await db.collection('terms').doc(docName).get()
     if (!docSnapshot.exists) return false
     dbTerms = docSnapshot.data().items
@@ -318,20 +316,16 @@ const existsInDb = async(terms, testTerms = null) => {
 // NOTE: incurs 1 Firestore read charge when the testTerms argument is not passed in
 const existsInDbVerbose = async(localTerms, testTerms) => {
   const logger = (termValidationLogger ? termValidationLogger : console.log())
+  let culprits = []
   try {
-    let alreadyExistsInDb
-
     if (testTerms) { 
-      alreadyExistsInDb = await existsInDb(localTerms, testTerms)
+      culprits = await existsInDb(localTerms, testTerms)
     } else {
-      alreadyExistsInDb = await existsInDb(localTerms)
+      culprits = await existsInDb(localTerms)
     }
-
-    if (alreadyExistsInDb) {
-      logger(`\nERROR: Terms data you were trying to append the database already existed ` +
-        `in the database.\nOnly the 'type' property can be non unique.`)
+    if (culprits) {
         logger( 'Report:')
-      alreadyExistsInDb.forEach(culprit => {
+        culprits.forEach(culprit => {
         logger(`problematic local term object:\n${JSON.stringify(localTerms[culprit.index], null, 2)}`, '')
         culprit.term && (
           logger(`'term' property value already exists in the database: ${culprit.term}`),
@@ -349,39 +343,14 @@ in the database. Data is safe to append to the database.`))
   } catch (e) {
     console.log(e)
   }
+  return culprits
 }
-
-//existsInDbVerbose(localTerms, dbTerms)
 
 /*
-// test existsInDb()
-try {
-  ;(async()=>{
-    const alreadyExistsInDb = await existsInDb(localTerms, dbTerms)
-    if (alreadyExistsInDb) {
-      console.log(`ERROR: Terms data you were trying to append the database already existed ` +
-        `in the database.\nOnly the 'type' property can be non unique.`)
-      console.log( 'Report:')
-      alreadyExistsInDb.forEach(culprit => {
-        console.log(`problematic local term object:\n${JSON.stringify(localTerms[culprit.index], null, 2)}`, '')
-        culprit.term && (
-          console.log(`'term' property value already exists in the database: ${culprit.term}`),
-          console.log(`id in the database for that terms object is: ${culprit.dbId}`)
-        )
-        culprit.title && (
-          console.log(`'title' property value already exists in the database: ${culprit.title}`),
-          console.log(`id in the database for that terms object is: ${culprit.dbId}`)
-        )
-      })
-    } else {
-      console.log(`Appending ${localTerms.length} Terms object to the database`)
-    }
-  })()
-} catch (e) {
-  console.log(e)
-}
+;(async()=>{
+  const offenders = await existsInDbVerbose(localTerms, dbTerms)
+})()
 */
-
 //console.log(validateUniqueness(t))
 
 module.exports = {
@@ -389,5 +358,7 @@ module.exports = {
   append: appendTerms,
   validateTerms,
   validateUniqueness,
+  existsInDb,
+  existsInDbVerbose,
   exit,
 }

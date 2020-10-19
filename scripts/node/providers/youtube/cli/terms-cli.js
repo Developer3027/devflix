@@ -16,6 +16,8 @@ const promptGetAsync = promisify(prompt.get); // workaround for https://github.c
 const { v4: uuidv4 } = require('uuid');
 
 const C = require('./lib/colors.js').colors
+const sharedLibRoot = path.resolve(__dirname, '../../../')
+const utilsUri = path.resolve(sharedLibRoot, 'local-utils.js')
 
 const {
   seed: seedDb,
@@ -27,10 +29,8 @@ const {
   existsInDbVerbose
 } = require('./lib/terms.js')
 
-const sharedLibRoot = path.resolve(__dirname, '../../../')
-const utilsUri = path.resolve(sharedLibRoot, 'local-utils.js')
 const timeStampFile = require(utilsUri).standard.timeStampFile
-const writeFile = require(utilsUri).fileSystem.writeFile
+const removeMultiple = require(utilsUri).standard.removeMultiple
 
 // BEGIN: global options (TODO: make these command line options)
 // If false no file will be written
@@ -41,9 +41,9 @@ const outputJsObject = false
  If true terms objects will be either seeded or appended to the database. If false nothing is written to the database and
  the flags isSeedDb and isSeedDb will be ignored
 */
-const isWriteDb = false
+const isWriteDb = true
 // If true (and isWriteDb = true) all terms data for the term type specified is overwritten in the database. If false terms will be appended. Duplicates will be ignored.
-const isSeedDb = true 
+const isSeedDb = false 
 // END: globaloptions (TODO: make these command line options)
 
 const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile( 'terms', (outputJsObject ? '.txt' : '.json') ))
@@ -160,12 +160,22 @@ Thousands of search terms could be lost, are you sure you want to proceed (y/n)?
 
 const promptSchemaRequestReport = {
   properties: {
-    _report_yn: {
-      description: c.hex(C.mediumOrange)(`WARNING: `) + `Duplicate data was found the local terms data and the terms data
-that is already in the database. This tool will now exit. Would you like a report first (y/n)?`,
+    _yn: {
+      description: `Would you like an error report of the problematic local data (y/n)?`,
       required: true,
       pattern: /^[y|n]$/,
       message: 'Enter either (y) for yes or (n) for no.' 
+    }
+  }
+}
+
+const promptSchemaProceedDeleteDupes = {
+  properties: {
+    _yn: {
+      description: `Proceed with removing the problematic local data before appending it to the database (y/n)?`,
+      required: true,
+      pattern: /^[y|n]$/,
+      message: 'Enter either (y) to the edit and append the data or (n) to abort the program.' 
     }
   }
 }
@@ -199,6 +209,12 @@ const cliRequestReport = async() => {
   return _yn
 }
 
+const cliProceedDeleteDupes = async() => {
+  prompt.start({message: c.hex(C.brightRed)('?')})
+  const { _yn } = await promptGetAsync(promptSchemaProceedDeleteDupes)
+  return _yn
+}
+
 const main = async() => {
   const terms = await cliPartOne()
 
@@ -209,10 +225,10 @@ const main = async() => {
   
   console.log(MSG_DB_BEGIN)
 
-  let response
+  let response, abort, mutatedTerms
   if (isSeedDb) {
     response = await cliPartTwo()
-    const abort = (response === 'n' ? true : false)
+    abort = (response === 'n' ? true : false)
     if (abort) {
       console.log('Aborted seeding operation.')
       process.exit(0)
@@ -222,20 +238,49 @@ const main = async() => {
       .then( res => ( console.log(res), exitGracefully() ) )
       .catch( e => ( console.log(e), exitGracefully() ) )
   } else {
-    // Validate that none of the local data already exists in the database before appending
-    const hasDupeData = await existsInDb(terms)
-    if (hasDupeData) {
+    // If local data has values that already exist in the db then it is problematic
+    const culprits = await existsInDb(terms)
+    if (culprits) { 
+      console.log(c.hex(C.mediumOrange)(`WARNING: `) + c.hex(C.brightYellow)(
+      `Data found in the local terms to be appended already exists in the terms data that is in the database.`))
+      console.log(c.hex(C.brightYellow)(`A total of ${
+        culprits.length} local term data object${
+        culprits.length > 1 ? 's' : ''} will be removed before appending to the database.\n`)
+      )
+      // Prompt user for a report of the problematic data
       response = await cliRequestReport()
       if (response === 'y') {
         await existsInDbVerbose(terms)
-        console.log('Please fix your data and try again.')
-        // TODO: give the user an option to omit the offeding data and append the rest.
+        // Prompt the user to proceed with removing the problematic data before appending it to the db
+        response = await cliProceedDeleteDupes()
+        abort = (response === 'n' ? true : false)
+        if (abort) {
+          console.log(c.hex(C.mediumOrange)('No data was appended. Program aborted.'))
+          process.exit(0)
+        }
       }
+      // Remove problematic data 
+      mutatedTerms = removeMultiple(
+        terms,
+        culprits.map(culprit => culprit.index)
+      )
+      ;((terms.length == 0) && (
+        console.log(c.hex(C.brightRed)('After removing problematic data there was no data left to append. Program aborted.')),
+        process.exit(1)
+      ))
+      console.log(c.hex(C.brightGreen)('Problematic data was removed.'))
     }
-    // Append database
-    await appendDb(terms)
-      .then( res => ( console.log(res), exitGracefully() ) )
-      .catch( e => ( console.log(e), exitGracefully() ) )
+    // Append database with local term objects
+    await appendDb((mutatedTerms ? mutatedTerms : terms))
+      .then(res => {
+        console.log(res)
+        console.log(c.hex(C.mediumBlue)('Program complete, goodbye.'))
+        exitGracefully()
+      })
+      .catch( e => {
+        console.log(c.hex(C.brightRed)(e))
+        exitGracefully() 
+      })
   }
 }
 

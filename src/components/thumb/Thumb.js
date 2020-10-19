@@ -1,9 +1,9 @@
 import React from 'react'
 
-const Thumb = ({ videoId }) => {
+const Thumb = ({ videoIds }) => {
   return (
     <div>
-      <img src={`https://i.ytimg.com/vi/${videoId}/default.jpg`} alt='tell' />
+      <img src={`https://i.ytimg.com/vi/${videoIds}/default.jpg`} alt='tell' />
     </div>
   )
 }

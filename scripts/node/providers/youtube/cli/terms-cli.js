@@ -36,14 +36,14 @@ const removeMultiple = require(utilsUri).standard.removeMultiple
 // If false no file will be written
 const isWriteFile = true
 // (prop ignored if isWriteFile = false): if false json will be written to file, if true a javascript style object will be written to file
-const outputJsObject = false
+const outputJsObject = true
 /*
  If true terms objects will be either seeded or appended to the database. If false nothing is written to the database and
  the flags isSeedDb and isSeedDb will be ignored
 */
 const isWriteDb = true
 // If true (and isWriteDb = true) all terms data for the term type specified is overwritten in the database. If false terms will be appended. Duplicates will be ignored.
-const isSeedDb = false 
+const isSeedDb = true 
 // END: globaloptions (TODO: make these command line options)
 
 const outputFileUri = path.resolve(__dirname, '../data/dump/' + timeStampFile( 'terms', (outputJsObject ? '.txt' : '.json') ))

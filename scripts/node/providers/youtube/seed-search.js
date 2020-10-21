@@ -50,7 +50,7 @@ https://www.googleapis.com/youtube/v3/videos?part=snippet&id=LeIAfZyK6Kw&key=AIz
 https://www.googleapis.com/youtube/v3/videoCategories?part=snippet&regionCode=US&key=AIzaSyCDxZv4R57xo2q3YggIR7sl53qjzTiPaM8
 https://www.googleapis.com/youtube/v3/videos?part=contentDetails%2Clocalizations%2Cplayer%2Csnippet&id=LeIAfZyK6Kw&key=AIzaSyCDxZv4R57xo2q3YggIR7sl53qjzTiPaM8
 
-https://www.googleapis.com/youtube/v3/channels?part=snippet%2C contentDetails%2C statistics&forUsername=TechGuyWeb&key=AIzaSyDDpCvJ5fhNFcGy-exLOOfC2DULQWtnJFc
+https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&forUsername=TechGuyWeb&key=AIzaSyDDpCvJ5fhNFcGy-exLOOfC2DULQWtnJFc
 */
 
 // BEGIN: Bootstrap
@@ -61,7 +61,7 @@ envResult.error && (
 )
 
 // temp grab terms data
-const frontEndTerms = require(path.resolve(__dirname, 'data/local-data.js')).frontendSearchTerms
+const frontEndTerms = require(path.resolve(__dirname, 'test/stub/local-test-data.js')).frontendSearchTerms
 
 // simulates options being passed to the script, use and edit the values here below until a proper options systems is implemented
 const globalOptions = {

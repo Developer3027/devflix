@@ -1,2 +1,0 @@
-Kotlin tutorial
-dart beginner, advanced tutorial

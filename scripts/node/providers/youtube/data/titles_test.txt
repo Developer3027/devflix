@@ -1,0 +1,3 @@
+title for foo
+title for bar
+title for baz

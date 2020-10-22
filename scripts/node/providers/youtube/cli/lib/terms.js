@@ -11,7 +11,7 @@ const path = require('path')
 const c = require('chalk');
 const prompt = require('prompt');
 
-const C = require('./colors.js').colors
+const C = require('../../../../local-ansi256-colors.js').colors
 const sharedLibRoot = path.resolve(__dirname, '../../../../')
 const utilsUri = path.resolve(sharedLibRoot, 'local-utils.js')
 

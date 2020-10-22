@@ -11,6 +11,7 @@ const ansi256hexs = ['#000000','#800000','#008000','#808000','#000080','#800080'
 module.exports = {
   hexs: ansi256hexs,
   colors: {
+    lightCyan: ansi256hexs[159],
     brightGreen: ansi256hexs[10],
     brightRed: ansi256hexs[9],
     brightCyan: ansi256hexs[14],
@@ -20,6 +21,7 @@ module.exports = {
     mediumBlue: ansi256hexs[27],
     mediumCyan: ansi256hexs[45],
     darkCyan: ansi256hexs[6],
+    magenta: ansi256hexs[201],
     rulesColor: ansi256hexs[69]
   }
 }

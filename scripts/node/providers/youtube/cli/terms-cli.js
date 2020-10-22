@@ -15,7 +15,7 @@ const prompt = require('prompt')
 const promptGetAsync = promisify(prompt.get); // workaround for https://github.com/flatiron/prompt/issues/204
 const { v4: uuidv4 } = require('uuid');
 
-const C = require('./lib/colors.js').colors
+const C = require('../../../local-ansi256-colors.js').colors
 const sharedLibRoot = path.resolve(__dirname, '../../../')
 const utilsUri = path.resolve(sharedLibRoot, 'local-utils.js')
 

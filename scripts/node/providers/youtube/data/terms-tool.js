@@ -144,7 +144,7 @@ const cmdShow = async(argv) => {
 const cmdCheck = async(argv) => {
  logger.info(`\nChecking and comparing the number of items in each terms and titles file...`)
 
-  const {terms, titles} = await processFiles(argv.terms, argv.titles)
+  const {terms, titles} = await processFiles(argv.terms, argv.titles, argv)
 
   if (terms.length == titles.length) {
     logger.success(`SUCCESS: The terms and titles files each had the same number of items: ${terms.length}`)
@@ -163,7 +163,7 @@ const cmdCheck = async(argv) => {
 }
 
 const cmdConvert = async(argv) => {
-  const {terms, titles} = await processFiles(argv.terms, argv.titles)
+  const {terms, titles} = await processFiles(argv.terms, argv.titles, argv)
 
   if (terms.length != titles.length) {
     logger.error('Error: Cannot convert. Titles and terms files are NOT of equal length.')

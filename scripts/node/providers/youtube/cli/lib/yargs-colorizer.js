@@ -1,5 +1,5 @@
 /***
- * @fileoverview Colorizes sopme parts of yargs output.
+ * @fileoverview Colorizes some parts of yargs output.
  * @author <a href="maito:apolo4pena@gmail.com">Apolo Pena</a>
  * @description Colorize portions of the yargs output by passing in an 
  * instance of a yargs program and a hex color code string.
@@ -14,14 +14,7 @@
  */
 c = require('chalk')
 
-const C = {
-  rose: '#FFAFFF',
-  cornflower: '#AFD7FF',
-  mint: '#AFFFD7',
-  peach: '#FFD7AF',
-  shalimar: '#FFFFAF',
-  pink: '#FFAFD7'
-}
+const pastelOne = require('./custom-hex-colors').palettes.pastelOne
 
 const Options = (yargs, hex) => {
   yargs.updateStrings({ 'Options:': c.hex(hex)('Options:') })
@@ -74,13 +67,13 @@ const boolean = (yargs, hex) => {
 }
 
 const pastelColor = (yargs) => {
-  Options(yargs, C.rose)
-  Commands(yargs, C.rose)
-  aliases(yargs, C.pink)
-  command(yargs, C.peach)
-  boolean(yargs, C.shalimar)
-  ShowVersion(yargs, C.mint)
-  ShowHelp(yargs, C.mint)
+  Options(yargs, pastelOne.rose)
+  Commands(yargs, pastelOne.rose)
+  aliases(yargs, pastelOne.pink)
+  command(yargs, pastelOne.peach)
+  boolean(yargs, pastelOne.shalimar)
+  ShowVersion(yargs, pastelOne.mint)
+  ShowHelp(yargs, pastelOne.mint)
   NotEnoughNonOptionArgs(yargs)
   TooManyNonOptionArgs(yargs)
 }

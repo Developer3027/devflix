@@ -19,17 +19,9 @@ const readline = require('readline')
 const chalk = require('chalk')
 
 const logger = require('../../../local-console-logger.js').console
-const cl = require('../cli/lib/color-console-log').trueColor.pastelOne
+const C = require('../cli/lib/custom-hex-colors.js').palettes.pastelOne
+const cl = require('../cli/lib/color-console-log.js').trueColor.pastelOne
 const colorizeYargs = require('../cli/lib/yargs-colorizer.js')
-
-const C = {
-  rose: '#FFAFFF',
-  cornflower: '#AFD7FF',
-  mint: '#AFFFD7',
-  peach: '#FFD7AF',
-  shalimar: '#FFFFAF',
-  pink: '#FFAFD7'
-}
 
 const c = {
   rose: chalk.hex(C.rose),
@@ -86,7 +78,7 @@ const parseLines = (uri) => {
 
 const processFiles = async(termsUri, titlesUri, argv) => {
   let terms, titles
-  
+
   const enoentMsg = (name) => (
     (name in argv)
       ? `Error processing the command 'show'. The ${name} file does not exist: ${c.pink(argv[name])}`

@@ -84,13 +84,13 @@ const parseLines = (uri) => {
   })
 };
 
-const processFiles = async(termsUri, titlesUri) => {
+const processFiles = async(termsUri, titlesUri, argv) => {
   let terms, titles
   
   const enoentMsg = (name) => (
     (name in argv)
-      ? `Error processing the command 'show'. The ${name} file does not exist: ${argv[name]}`
-      : `Internal Error: command: show: No such argv key: ${name}`
+      ? `Error processing the command 'show'. The ${name} file does not exist: ${c.pink(argv[name])}`
+      : `Internal Error: command: show: No such argv key: ${c.pink(name)}`
   )
 
   try {
@@ -117,7 +117,7 @@ const processFiles = async(termsUri, titlesUri) => {
 }
 
 const cmdShow = async(argv) => {
-  const {terms, titles} = await processFiles(argv.terms, argv.titles)
+  const {terms, titles} = await processFiles(argv.terms, argv.titles, argv)
 
   logger.info(`\nCreating a visual combination of ${
     terms.length} terms and ${

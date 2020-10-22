@@ -40,20 +40,26 @@ const c = {
   pink: chalk.hex(C.pink)
 }
 
-const colorizeArray = (strings, color = 'cornflower') => strings.map( str => eval(`c.${color}(str)`) )
+//const colorizeArray = (strings, color = 'cornflower') => strings.map( str => eval(`c.${color}(str)`) )
 
-const COMMAND_NAMES = ['show', 'check']
+const COMMAND_NAMES = ['show', 'check', 'convert']
 
 const CMD_SHOW = {
   NAME: COMMAND_NAMES[0],
   ALIASES: ['s','view'],
-  DESC: c.mint('Show terms and their corresponding titles side by side.')
+  DESC: c.mint('Show terms and their corresponding titles side by side in the console.')
 }
 
 const CMD_CHECK = {
   NAME: COMMAND_NAMES[1],
-  ALIASES: ['c', 'verify'],
-  DESC: c.mint('Verifies that terms and title files are of equal length.')
+  ALIASES: ['c', 'report'],
+  DESC: c.mint('Checks that terms and title files have the same number of items. Reports on any differences found to the console.')
+}
+
+const CMD_CONVERT = {
+  NAME: COMMAND_NAMES[2],
+  ALIASES: ['C', 'makelist'],
+  DESC: c.mint('Coverts terms and titles files to comma delimited lists and outputs them to the console.')
 }
 
 const parseLines = (uri) => {
@@ -78,17 +84,17 @@ const parseLines = (uri) => {
   })
 };
 
-const cmdShow = async(argv, p = program) => {
+const processFiles = async(termsUri, titlesUri) => {
+  let terms, titles
+  
   const enoentMsg = (name) => (
     (name in argv)
       ? `Error processing the command 'show'. The ${name} file does not exist: ${argv[name]}`
       : `Internal Error: command: show: No such argv key: ${name}`
   )
- 
-  let terms, titles
 
   try {
-    terms = await parseLines(argv.terms)
+    terms = await parseLines(termsUri)
   } catch (e) {
     e.code === 'ENOENT' && (
       logger.error(enoentMsg('terms')),
@@ -98,7 +104,7 @@ const cmdShow = async(argv, p = program) => {
   }
 
   try {
-    titles = await parseLines(argv.titles)
+    titles = await parseLines(titlesUri)
   } catch (e) {
     e.code === 'ENOENT' && (
       logger.error(enoentMsg('titles')),
@@ -107,7 +113,15 @@ const cmdShow = async(argv, p = program) => {
     logger.error(e)
   }
 
-  console.log('')
+  return {terms, titles}
+}
+
+const cmdShow = async(argv) => {
+  const {terms, titles} = await processFiles(argv.terms, argv.titles)
+
+  logger.info(`\nCreating a visual combination of ${
+    terms.length} terms and ${
+    titles.length} titles from the terms and titles files...`)
 
   if (terms.length > titles.length) {
     logger.warn('WARNING: There are more terms than titles!')
@@ -119,7 +133,6 @@ const cmdShow = async(argv, p = program) => {
     terms.length =  titles.length
   }
 
-  cl.rose.log(`Creating a visual combination of ${terms.length} terms and ${titles.length} titles from the two files...`)
   console.log('')
 
   for (let i = 0; i < terms.length; i++) {
@@ -136,9 +149,44 @@ const cmdShow = async(argv, p = program) => {
 
 }
 
-const cmdCheck = (argv, p = program) => {
-  cl.rose.log(`Verifying length of ${argv.terms} with ${argv.titles}`)
+const cmdCheck = async(argv) => {
+ logger.info(`\nChecking and comparing the number of items in each terms and titles file...`)
+
+  const {terms, titles} = await processFiles(argv.terms, argv.titles)
+
+  if (terms.length == titles.length) {
+    logger.success(`SUCCESS: The terms and titles files each had the same number of items: ${terms.length}`)
+    logger.success('The terms and titles files are safe to convert to comma delimited lists.')
+    process.exit(0)
+  }
+
+  if (terms.length < titles.length) {
+    logger.error(`--> Mismatch: The terms file had ${titles.length - terms.length} items less than the titles file. <--`)
+  } else {
+    logger.error(`--> Mismatch: The titles file had ${terms.length - titles.length} items less than the terms file. <--`)
+  }
+
+  logger.warn('The terms and titles files are NOT safe to convert to comma delimited lists.'),
+  logger.warn('Please ensure that the number of items in each file are equal before converting.')
 }
+
+const cmdConvert = async(argv) => {
+  const {terms, titles} = await processFiles(argv.terms, argv.titles)
+
+  if (terms.length != titles.length) {
+    logger.error('Error: Cannot convert. Titles and terms files are NOT of equal length.')
+    logger.warn(`Run the 'check' command for more details ---> $node ./terms-tool.js check ${argv.titles} ${argv.terms}`)
+    process.exit(1)
+  }
+
+ logger.info(`\nConverting terms and titles files to comma delimited lists...\n`)
+  let termsList = terms.join(',')
+  let titlesList = titles.join(',')
+  logger.success(c.cornflower('Terms:'), termsList)
+  console.log()
+  logger.success(c.mint('Titles:'), titlesList)
+}
+
 
 const program = require('yargs/yargs')(process.argv.slice(2))
   .scriptName(c.cornflower('terms-tool'))
@@ -156,13 +204,23 @@ const program = require('yargs/yargs')(process.argv.slice(2))
     desc: CMD_CHECK.DESC,
     handler: cmdCheck
   })
-  .wrap(72)
-  .demandCommand(3, 3, chalk.red('Error: You must use exactly one command with the proper number of required arguments.'))
+  .command({
+    command: `${CMD_CONVERT.NAME} <terms> <titles>`,
+    aliases: CMD_CONVERT.ALIASES,
+    desc: CMD_CONVERT.DESC,
+    handler: cmdConvert
+  })
+  .wrap(80)
+  .demandCommand(
+    3,
+    3, 
+    chalk.red('Error: You must use exactly one command with the proper number of required arguments.')
+  )
   .help();
 
 const main = async(p = program) => {
   const name = p.argv._[0]
-
+  colorizeYargs.pastelColor(program)
   COMMAND_NAMES.includes(name) || (
     logger.error(`Invalid command: ${name}`),
     p.showHelp()
@@ -170,15 +228,7 @@ const main = async(p = program) => {
 }
 
 // BEGIN: Main Program
-colorizeYargs.Options(program, C.rose)
-colorizeYargs.Commands(program, C.rose)
-colorizeYargs.aliases(program, C.pink)
-colorizeYargs.command(program, C.peach)
-colorizeYargs.boolean(program, C.shalimar)
-colorizeYargs.ShowVersion(program, C.mint)
-colorizeYargs.ShowHelp(program, C.mint)
-colorizeYargs.NotEnoughNonOptionArgs(program)
-colorizeYargs.TooManyNonOptionArgs(program)
+
 main(program)
 // END: Main Program
 

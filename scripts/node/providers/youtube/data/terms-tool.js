@@ -32,8 +32,7 @@ const c = {
   pink: chalk.hex(C.pink)
 }
 
-//const colorizeArray = (strings, color = 'cornflower') => strings.map( str => eval(`c.${color}(str)`) )
-
+const VERSION = 'terms-tool 0.1.2'
 const COMMAND_NAMES = ['show', 'check', 'convert']
 
 const CMD_SHOW = {
@@ -52,6 +51,29 @@ const CMD_CONVERT = {
   NAME: COMMAND_NAMES[2],
   ALIASES: ['C', 'makelist'],
   DESC: c.mint('Coverts terms and titles files to comma delimited lists and outputs them to the console.')
+}
+
+const failTooManyArgs = (argv_, l = logger) => {
+  const problems = Array.from(argv_)
+  const cmdName = problems.shift()
+  const n = problems.length
+  const isPlural = ( n > 1 ? true : false)
+
+  if (n < 1) {
+    throw new Error('Internal Error, no offenders.')
+  }
+
+  logger.error (
+    `Error processing the command '${cmdName}'. ` +
+    `There ${
+      isPlural ? 'were' : 'was'} ${n} more argument${
+      isPlural ? 's' : ''} than what was required.`
+  )
+  logger.error(
+    `----> Problematic extraneous argument${
+    isPlural ? 's' : ''}: ${problems}`
+  )
+  process.exit(1)
 }
 
 const parseLines = (uri) => {
@@ -109,6 +131,8 @@ const processFiles = async(termsUri, titlesUri, argv) => {
 }
 
 const cmdShow = async(argv) => {
+  (argv._.length > 1) && failTooManyArgs(argv._)
+
   const {terms, titles} = await processFiles(argv.terms, argv.titles, argv)
 
   logger.info(`\nCreating a visual combination of ${
@@ -138,11 +162,12 @@ const cmdShow = async(argv) => {
     
     console.log()
   }
-
 }
 
 const cmdCheck = async(argv) => {
- logger.info(`\nChecking and comparing the number of items in each terms and titles file...`)
+  (argv._.length > 1) && failTooManyArgs(argv._)
+
+  logger.info(`\nChecking and comparing the number of items in each terms and titles file...`)
 
   const {terms, titles} = await processFiles(argv.terms, argv.titles, argv)
 
@@ -163,6 +188,8 @@ const cmdCheck = async(argv) => {
 }
 
 const cmdConvert = async(argv) => {
+  (argv._.length > 1) && failTooManyArgs(argv._)
+
   const {terms, titles} = await processFiles(argv.terms, argv.titles, argv)
 
   if (terms.length != titles.length) {
@@ -171,9 +198,11 @@ const cmdConvert = async(argv) => {
     process.exit(1)
   }
 
- logger.info(`\nConverting terms and titles files to comma delimited lists...\n`)
+  logger.info(`\nConverting terms and titles files to comma delimited lists...\n`)
+
   let termsList = terms.join(',')
   let titlesList = titles.join(',')
+
   logger.success(c.cornflower('Terms:'), termsList)
   console.log()
   logger.success(c.mint('Titles:'), titlesList)
@@ -182,37 +211,46 @@ const cmdConvert = async(argv) => {
 
 const program = require('yargs/yargs')(process.argv.slice(2))
   .scriptName(c.cornflower('terms-tool'))
-  .version(c.cornflower('terms-tool 0.1.1'))
+  .version(c.cornflower(VERSION))
   .epilog(c.shalimar('\n© 2020 Devz3n.com'))
   .command({
     command: `${CMD_SHOW.NAME} <terms> <titles>`,
     aliases: CMD_SHOW.ALIASES,
     desc: CMD_SHOW.DESC,
+    builder: (yargs) => {
+      yargs.positional('terms', {
+        describe: c.mint('The path to a terms file. Each term in the file must be on its own line.'),
+        type: 'string'
+      })
+      yargs.positional('titles', {
+        describe: c.mint('The path to a titles file. Each title in the file must be on its own line.'),
+        type: 'string'
+      })
+    },
     handler: cmdShow
   })
   .command({
-    command: `${CMD_CHECK.NAME} <terms> <titles>`,
+    command: `${CMD_CHECK.NAME} [terms] [titles]`,
     aliases: CMD_CHECK.ALIASES,
     desc: CMD_CHECK.DESC,
     handler: cmdCheck
   })
   .command({
-    command: `${CMD_CONVERT.NAME} <terms> <titles>`,
+    command: `${CMD_CONVERT.NAME} [terms] [titles]`,
     aliases: CMD_CONVERT.ALIASES,
     desc: CMD_CONVERT.DESC,
     handler: cmdConvert
   })
   .wrap(80)
   .demandCommand(
-    3,
-    3, 
+    1,
+    1, 
     chalk.red('Error: You must use exactly one command with the proper number of required arguments.')
   )
   .help();
 
 const main = async(p = program) => {
   const name = p.argv._[0]
-  colorizeYargs.pastelColor(program)
   COMMAND_NAMES.includes(name) || (
     logger.error(`Invalid command: ${name}`),
     p.showHelp()
@@ -220,7 +258,7 @@ const main = async(p = program) => {
 }
 
 // BEGIN: Main Program
-
+colorizeYargs.pastelColor(program)
 main(program)
 // END: Main Program
 

@@ -13,6 +13,7 @@ const peach = '#FFD7AF'
 const rose = '#FFAFFF'
 const salmon = '#FFAFAF'
 const shalimar = '#FFFFAF'
+const coral = '#FF7F58'
 
 module.exports = {
   palettes: {
@@ -23,7 +24,8 @@ module.exports = {
       peach,
       rose,
       salmon,
-      shalimar
+      shalimar,
+      coral /* good for error/warn/strong mesages */
     }
   },
   all: {

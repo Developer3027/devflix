@@ -28,6 +28,10 @@ const Examples = (yargs, hex) => {
   yargs.updateStrings({ 'Examples:': c.hex(hex)('Examples:') })
 }
 
+const Positionals = (yargs, hex) => {
+  yargs.updateStrings({ 'Positionals:': c.hex(hex)('Positionals:') })
+}
+
 const ShowVersion = (yargs, hex) => {
   yargs.updateStrings({ 'Show version number': c.hex(hex)('Show version number') })
 }
@@ -54,10 +58,6 @@ const TooManyNonOptionArgs = (yargs, hex) => {
   })
 }
 
-const aliases = (yargs, hex) => {
-  yargs.updateStrings({ 'aliases:': c.hex(hex)('aliases:') })
-}
-
 const command = (yargs, hex) => {
   yargs.updateStrings({ 'command': c.hex(hex)('command') })
 }
@@ -66,12 +66,52 @@ const boolean = (yargs, hex) => {
   yargs.updateStrings({ 'boolean': c.hex(hex)('boolean') })
 }
 
+const string = (yargs, hex) => {
+  yargs.updateStrings({ 'string': c.hex(hex)('string') })
+}
+
+const number = (yargs, hex) => {
+  yargs.updateStrings({ 'number': c.hex(hex)('number') })
+}
+
+const array = (yargs, hex) => {
+  yargs.updateStrings({ 'array': c.hex(hex)('array') })
+}
+
+const count = (yargs, hex) => {
+  yargs.updateStrings({ 'count': c.hex(hex)('count') })
+}
+
+const Default = (yargs, hex) => {
+  yargs.updateStrings({ 'default:': c.hex(hex)('default:') })
+}
+
+const choices = (yargs, hex) => {
+  yargs.updateStrings({ 'choices:': c.hex(hex)('choices:') })
+}
+
+const aliases = (yargs, hex) => {
+  yargs.updateStrings({ 'aliases:': c.hex(hex)('aliases:') })
+}
+const required = (yargs, hex) => {
+  yargs.updateStrings({ 'required': c.hex(hex)('required') })
+}
+
 const pastelColor = (yargs) => {
   Options(yargs, pastelOne.rose)
   Commands(yargs, pastelOne.rose)
+  Examples(yargs, pastelOne.rose)
+  Positionals(yargs, pastelOne.rose)
+  required(yargs, pastelOne.coral)
   aliases(yargs, pastelOne.pink)
   command(yargs, pastelOne.peach)
+  choices(yargs, pastelOne.peach)
+  count(yargs, pastelOne.peach)
+  Default(yargs, pastelOne.peach)
   boolean(yargs, pastelOne.shalimar)
+  string(yargs, pastelOne.shalimar)
+  number(yargs, pastelOne.shalimar)
+  array(yargs, pastelOne.shalimar)
   ShowVersion(yargs, pastelOne.mint)
   ShowHelp(yargs, pastelOne.mint)
   NotEnoughNonOptionArgs(yargs)
@@ -83,11 +123,19 @@ module.exports = {
   Options,
   Commands,
   Examples,
+  Positionals,
   ShowVersion,
   ShowHelp,
   NotEnoughNonOptionArgs,
   TooManyNonOptionArgs,
+  required,
   aliases,
   command,
-  boolean
+  boolean,
+  choices,
+  count,
+  Default,
+  string,
+  number,
+  array,
 }

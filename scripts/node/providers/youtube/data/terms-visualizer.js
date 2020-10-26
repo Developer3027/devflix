@@ -13,6 +13,7 @@
  * @license MIT
  */
 const fs = require('fs')
+const path = require('path')
 
 const readline = require('readline')
 
@@ -44,7 +45,10 @@ const CMD_SHOW = {
 const CMD_CHECK = {
   NAME: COMMAND_NAMES[1],
   ALIASES: ['c', 'report'],
-  DESC: c.mint('Checks that terms and title files have the same number of items. Reports on any differences found to the console.')
+  DESC: c.mint(
+    'Checks that terms and title files have the same number of items. ' +
+    'Outputs a report to the console listing any differences found.'
+  )
 }
 
 const CMD_CONVERT = {
@@ -77,9 +81,10 @@ const failTooManyArgs = (argv_, l = logger) => {
 }
 
 const parseLines = (uri) => {
+  const file = path.resolve(__dirname, uri)
   return new Promise((resolve, reject) => {
     let data = []
-    const fileStream = fs.createReadStream(uri)
+    const fileStream = fs.createReadStream(file)
 
     fileStream.on('error', e => reject(e))
 
@@ -208,6 +213,22 @@ const cmdConvert = async(argv) => {
   logger.success(c.mint('Titles:'), titlesList)
 }
 
+const termsTitlesBuilder = (yargs) => {
+  yargs.positional('terms', {
+    describe: c.mint(
+      'The path to a terms file. The path can be absolute or relative. If the path is relative, ' +
+      'it must be relative to this tools location. Each title in the file must be on its own line.'
+    ),
+    type: 'string'
+  })
+  yargs.positional('titles', {
+    describe: c.mint(
+      'The path to a titles file. The path can be absolute or relative. If the path is relative, ' +
+      'it must be relative to this tools location. Each title in the file must be on its own line.'
+    ),
+    type: 'string'
+  })
+}
 
 const program = require('yargs/yargs')(process.argv.slice(2))
   .scriptName(c.cornflower('terms-tool'))
@@ -217,28 +238,21 @@ const program = require('yargs/yargs')(process.argv.slice(2))
     command: `${CMD_SHOW.NAME} <terms> <titles>`,
     aliases: CMD_SHOW.ALIASES,
     desc: CMD_SHOW.DESC,
-    builder: (yargs) => {
-      yargs.positional('terms', {
-        describe: c.mint('The path to a terms file. Each term in the file must be on its own line.'),
-        type: 'string'
-      })
-      yargs.positional('titles', {
-        describe: c.mint('The path to a titles file. Each title in the file must be on its own line.'),
-        type: 'string'
-      })
-    },
+    builder: termsTitlesBuilder,
     handler: cmdShow
   })
   .command({
-    command: `${CMD_CHECK.NAME} [terms] [titles]`,
+    command: `${CMD_CHECK.NAME} <terms> <titles>`,
     aliases: CMD_CHECK.ALIASES,
     desc: CMD_CHECK.DESC,
+    builder: termsTitlesBuilder,
     handler: cmdCheck
   })
   .command({
-    command: `${CMD_CONVERT.NAME} [terms] [titles]`,
+    command: `${CMD_CONVERT.NAME} <terms> <titles>`,
     aliases: CMD_CONVERT.ALIASES,
     desc: CMD_CONVERT.DESC,
+    builder: termsTitlesBuilder,
     handler: cmdConvert
   })
   .wrap(80)

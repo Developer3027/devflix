@@ -145,12 +145,12 @@ const cmdShow = async(argv) => {
     titles.length} titles from the terms and titles files...`)
 
   if (terms.length > titles.length) {
-    logger.warn('WARNING: There are more terms than titles!')
+    logger.orange('WARNING: There are more terms than titles!')
     titles.length = terms.length
   }
 
   if (terms.length < titles.length) {
-    logger.warn('WARNING: There are more titles than terms!')
+    logger.orange('WARNING: There are more titles than terms!')
     terms.length =  titles.length
   }
 
@@ -159,11 +159,11 @@ const cmdShow = async(argv) => {
   for (let i = 0; i < terms.length; i++) {
     terms[i]
       ? cl.cornflower.log(`Term: ${terms[i]}`) 
-      : logger.error(`Term: ${terms[i]}`) 
+      : logger.red(`Term: ${terms[i]}`) 
 
     titles[i] 
       ? cl.mint.log(`Title: ${titles[i]}`)
-      : logger.error(`Title: ${titles[i]}`)
+      : logger.red(`Title: ${titles[i]}`)
     
     console.log()
   }
@@ -188,8 +188,8 @@ const cmdCheck = async(argv) => {
     logger.error(`--> Mismatch: The titles file had ${terms.length - titles.length} items less than the terms file. <--`)
   }
 
-  logger.warn('The terms and titles files are NOT safe to convert to comma delimited lists.'),
-  logger.warn('Please ensure that the number of items in each file are equal before converting.')
+  logger.orange('The terms and titles files are NOT safe to convert to comma delimited lists.'),
+  logger.orange('Please ensure that the number of items in each file are equal before converting.')
 }
 
 const cmdConvert = async(argv) => {

@@ -22,7 +22,8 @@
 		"start": "react-scripts start",
 		"build": "react-scripts build",
 		"test": "react-scripts test",
-		"eject": "react-scripts eject"
+		"eject": "react-scripts eject",
+		"test-terms-visualizer": "cd scripts/node/providers/youtube && mocha --file test/terms-visualizer.test.js"
 	},
 	"eslintConfig": {
 		"extends": "react-app"
@@ -40,7 +41,9 @@
 		]
 	},
 	"devDependencies": {
+		"chai": "^4.2.0",
 		"chalk": "^4.1.0",
+		"mocha": "^8.2.0",
 		"prompt": "^1.0.0",
 		"uuid": "^8.3.1",
 		"yargs": "^16.0.3"

@@ -23,7 +23,7 @@
 		"build": "react-scripts build",
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
-		"test-terms-visualizer": "cd scripts/node/providers/youtube && mocha --file test/terms-visualizer.test.js"
+		"test-terms-visualizer": "cd scripts/node/providers/youtube && mocha --reporter=../../local-mocha-reporter.js --file test/terms-visualizer.test.js"
 	},
 	"eslintConfig": {
 		"extends": "react-app"

@@ -3,6 +3,10 @@
  * @author <a href="maito:apolo4pena@gmail.com">Apolo Pena</a>
  * @description Create or batch create terme objects and or write them to a Firestore
  * Run the program without options to get usage information.
+ * @requires chalk
+ * @requires lib/terms.js
+ * @requires local-ansi256-colors.js
+ * @requires local-utils.js
  * @license MIT
  */
 

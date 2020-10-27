@@ -60,7 +60,19 @@ module.exports = {
           console,
           [...arguments].map(arg => c.hex(C.brightGreen)(arg))
         )
-      }
+      },
+      red: function () {
+        oc.log.apply(
+          console,
+          [...arguments].map(arg => c.red(arg))
+        )
+      },
+      orange: function () {
+        oc.log.apply(
+          console,
+          [...arguments].map(arg => c.hex(C.mediumOrange)(arg))
+        )
+      },
     };
   }(console)),
 }

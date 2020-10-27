@@ -1,5 +1,5 @@
 /***
- * @fileoverview Colorizes sopme parts of yargs output.
+ * @fileoverview Colorizes some parts of yargs output.
  * @author <a href="maito:apolo4pena@gmail.com">Apolo Pena</a>
  * @description Colorize portions of the yargs output by passing in an 
  * instance of a yargs program and a hex color code string.
@@ -14,14 +14,7 @@
  */
 c = require('chalk')
 
-const C = {
-  rose: '#FFAFFF',
-  cornflower: '#AFD7FF',
-  mint: '#AFFFD7',
-  peach: '#FFD7AF',
-  shalimar: '#FFFFAF',
-  pink: '#FFAFD7'
-}
+const pastelOne = require('./custom-hex-colors').palettes.pastelOne
 
 const Options = (yargs, hex) => {
   yargs.updateStrings({ 'Options:': c.hex(hex)('Options:') })
@@ -33,6 +26,10 @@ const Commands = (yargs, hex) => {
 
 const Examples = (yargs, hex) => {
   yargs.updateStrings({ 'Examples:': c.hex(hex)('Examples:') })
+}
+
+const Positionals = (yargs, hex) => {
+  yargs.updateStrings({ 'Positionals:': c.hex(hex)('Positionals:') })
 }
 
 const ShowVersion = (yargs, hex) => {
@@ -61,10 +58,6 @@ const TooManyNonOptionArgs = (yargs, hex) => {
   })
 }
 
-const aliases = (yargs, hex) => {
-  yargs.updateStrings({ 'aliases:': c.hex(hex)('aliases:') })
-}
-
 const command = (yargs, hex) => {
   yargs.updateStrings({ 'command': c.hex(hex)('command') })
 }
@@ -73,14 +66,54 @@ const boolean = (yargs, hex) => {
   yargs.updateStrings({ 'boolean': c.hex(hex)('boolean') })
 }
 
+const string = (yargs, hex) => {
+  yargs.updateStrings({ 'string': c.hex(hex)('string') })
+}
+
+const number = (yargs, hex) => {
+  yargs.updateStrings({ 'number': c.hex(hex)('number') })
+}
+
+const array = (yargs, hex) => {
+  yargs.updateStrings({ 'array': c.hex(hex)('array') })
+}
+
+const count = (yargs, hex) => {
+  yargs.updateStrings({ 'count': c.hex(hex)('count') })
+}
+
+const Default = (yargs, hex) => {
+  yargs.updateStrings({ 'default:': c.hex(hex)('default:') })
+}
+
+const choices = (yargs, hex) => {
+  yargs.updateStrings({ 'choices:': c.hex(hex)('choices:') })
+}
+
+const aliases = (yargs, hex) => {
+  yargs.updateStrings({ 'aliases:': c.hex(hex)('aliases:') })
+}
+const required = (yargs, hex) => {
+  yargs.updateStrings({ 'required': c.hex(hex)('required') })
+}
+
 const pastelColor = (yargs) => {
-  Options(yargs, C.rose)
-  Commands(yargs, C.rose)
-  aliases(yargs, C.pink)
-  command(yargs, C.peach)
-  boolean(yargs, C.shalimar)
-  ShowVersion(yargs, C.mint)
-  ShowHelp(yargs, C.mint)
+  Options(yargs, pastelOne.rose)
+  Commands(yargs, pastelOne.rose)
+  Examples(yargs, pastelOne.rose)
+  Positionals(yargs, pastelOne.rose)
+  required(yargs, pastelOne.coral)
+  aliases(yargs, pastelOne.pink)
+  command(yargs, pastelOne.peach)
+  choices(yargs, pastelOne.peach)
+  count(yargs, pastelOne.peach)
+  Default(yargs, pastelOne.peach)
+  boolean(yargs, pastelOne.shalimar)
+  string(yargs, pastelOne.shalimar)
+  number(yargs, pastelOne.shalimar)
+  array(yargs, pastelOne.shalimar)
+  ShowVersion(yargs, pastelOne.mint)
+  ShowHelp(yargs, pastelOne.mint)
   NotEnoughNonOptionArgs(yargs)
   TooManyNonOptionArgs(yargs)
 }
@@ -90,11 +123,19 @@ module.exports = {
   Options,
   Commands,
   Examples,
+  Positionals,
   ShowVersion,
   ShowHelp,
   NotEnoughNonOptionArgs,
   TooManyNonOptionArgs,
+  required,
   aliases,
   command,
-  boolean
+  boolean,
+  choices,
+  count,
+  Default,
+  string,
+  number,
+  array,
 }
